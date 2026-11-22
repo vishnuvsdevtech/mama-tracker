@@ -48,6 +48,40 @@ date is a date, not a deadline.
 - **Night mode is a real palette, not an inversion.** Late pregnancy involves a lot
   of 3 a.m. phone use.
 
+## Two states, one page
+
+The page changes shape at the birth rather than handing the parent a new app:
+
+| | before birth | after birth |
+|---|---|---|
+| ring | counts **down** to the due date | counts **up** from the birth date |
+| next | appointments by week | the next date *you* entered |
+| checklist | documents to collect | a daily log: feed, sleep, nappy |
+| questions | for the next visit | for the paediatrician |
+
+Press "the baby has arrived", enter the real date — births are rarely on the due
+date — and the pregnancy panels retire. Everything already entered stays.
+
+## The summary
+
+Plain sentences built from the record: age or weeks remaining, entries in the last
+week, the next date on the schedule. **It is not analysis.** A single family's
+record has no statistical signal, so anything the page "discovered" would be
+invented. The summary describes and does date arithmetic, and says so on the page.
+
+The immunisation section is deliberately empty until the parent types in their own
+dates. The app never supplies a schedule.
+
+## No backend, by design
+
+Everything is `localStorage` on one device. No account, no server, no analytics, no
+request after the page loads — `grep` for `fetch(` in `assets/` and find nothing.
+
+All persistence sits behind `assets/store.js`, whose four methods
+(`load`, `save`, `listProfiles`, `create`) are async. If this ever gets a backend,
+that file is replaced and nothing above it changes. Making them async now was the
+one piece of future-proofing worth paying for.
+
 ## If this ever became something real
 
 1. **A doctor reviews every medical-adjacent word** before it is public. That is the

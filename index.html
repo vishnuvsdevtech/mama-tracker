@@ -31,6 +31,25 @@
     doctor tells you.</p>
   </section>
 
+  <!-- profile -->
+  <section class="card profile-card" id="profileCard">
+    <div class="card-head"><h2>Your profile</h2><span class="hint">private · saved in this browser only</span></div>
+    <div class="profiles" id="profiles"></div>
+    <div class="addrow" id="newRow">
+      <input id="newName" placeholder="name for a new profile…" autocomplete="off">
+      <button class="btn" id="newBtn">Create</button>
+    </div>
+  </section>
+
+  <!-- summary -->
+  <section class="card summary-card" id="summaryCard" hidden>
+    <div class="card-head"><h2>Where things stand</h2>
+      <span class="hint" id="sumFor">—</span></div>
+    <ul class="sumlist" id="sumlist"></ul>
+    <p class="hint">A summary of what you recorded and what is next. Not analysis — one family's
+    record has no patterns to find, so this page does not pretend to find any.</p>
+  </section>
+
   <!-- setup -->
   <section class="card" id="setupCard">
     <div class="card-head"><h2>Where you are</h2><span class="hint">change whenever — everything recalculates</span></div>
@@ -63,6 +82,44 @@
       </div>
       <p class="hint" id="nextMilestone">Add your dates above and this fills in.</p>
     </div>
+  </section>
+
+  <!-- birth switch -->
+  <section class="card birth-card" id="birthCard">
+    <div class="card-head"><h2>The baby has arrived</h2><span class="hint">the page starts counting up instead</span></div>
+    <div class="addrow">
+      <input type="date" id="bornAt" aria-label="date of birth">
+      <input id="babyName" placeholder="baby's name (optional)" autocomplete="off">
+      <button class="btn" id="bornBtn">Switch</button>
+    </div>
+    <p class="hint" id="bornNote">Real births are rarely on the due date — enter the actual day and everything
+    after this point is measured from it.</p>
+  </section>
+
+  <!-- log -->
+  <section class="card log-card" id="logCard" hidden>
+    <div class="card-head"><h2>Daily log</h2><span class="hint" id="logCount">nothing yet</span></div>
+    <div class="logrow">
+      <button class="lchip" data-k="feed">Feed</button>
+      <button class="lchip" data-k="sleep">Sleep</button>
+      <button class="lchip" data-k="nappy">Nappy</button>
+      <button class="lchip" data-k="mood">Mood</button>
+      <button class="lchip" data-k="note">Note</button>
+    </div>
+    <div class="loglist" id="loglist"></div>
+  </section>
+
+  <!-- schedule -->
+  <section class="card sched-card" id="schedCard" hidden>
+    <div class="card-head"><h2>Your schedule</h2><span class="hint">type in what the doctor gave you</span></div>
+    <div class="addrow">
+      <input id="jabName" placeholder="e.g. 6-week vaccines" autocomplete="off">
+      <input type="date" id="jabDate" aria-label="date">
+      <button class="btn" id="jabAdd">Add</button>
+    </div>
+    <div class="loglist" id="jablist"></div>
+    <p class="hint">This app never supplies an immunisation schedule. Dates you enter are shown back to you as
+    dates; the schedule itself comes from your paediatrician.</p>
   </section>
 
   <!-- timeline -->
@@ -106,6 +163,8 @@
   <span>Nothing leaves this device — no account, no server, no analytics.</span>
 </footer>
 
+<script src="assets/store.js"></script>
+<script src="assets/summary.js"></script>
 <script src="assets/app.js"></script>
 </body>
 </html>
