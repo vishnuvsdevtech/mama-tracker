@@ -49,7 +49,7 @@ self.addEventListener('fetch', (event) => {
     const hit = await cache.match(req)
     if (hit) return hit
     const res = await fetch(req)
-    if (res.ok && (url.pathname.includes('/assets/') || url.pathname.includes('/baby/') || /\.(png|webp|woff2?)$/.test(url.pathname))) {
+    if (res.ok && (url.pathname.includes('/assets/') || url.pathname.includes('/baby/') || /\.(png|webp|svg|ico|woff2?)$/.test(url.pathname))) {
       cache.put(req, res.clone())
       // fingerprints mean a new deploy writes new entries; without a cap the cache
       // accumulates a copy of every build that ever shipped
