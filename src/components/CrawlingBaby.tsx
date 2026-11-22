@@ -89,7 +89,26 @@ export default function CrawlingBaby() {
       if (s.hidden || s.clip !== 'crawl') anim.pause()
     }
     s.move = (on: boolean) => { if (!anim || anim.playState === 'finished') return; if (on) anim.play(); else anim.pause() }
-    startCrossing(x0)
+
+    /* Movement must wait for the legs. On a first load the video element has no
+       frame yet, so the browser paints the poster — a single still — and if the
+       crossing starts immediately you watch that still slide across the screen.
+       That was the initial-load report: the moment you clicked it, the tickle clip
+       forced a real frame and the crawl came back correctly. So: start the crawl
+       only once the video is genuinely playing, which also means the baby appears
+       already crawling rather than appearing and then starting. */
+    let moving = false
+    const begin = () => {
+      if (moving) return
+      moving = true
+      crawl.removeEventListener('playing', begin)
+      crawl.removeEventListener('timeupdate', begin)
+      startCrossing(x0)
+    }
+    crawl.addEventListener('playing', begin)
+    crawl.addEventListener('timeupdate', begin)
+    if (!crawl.paused && crawl.currentTime > 0.05) begin()
+    crawl.play().catch(() => {})
 
     const ro = new ResizeObserver(() => {
       const w = el.offsetWidth, h = el.offsetHeight
@@ -143,12 +162,26 @@ export default function CrawlingBaby() {
        suspends a muted video by itself, the video stops while the animation keeps
        running — the baby slides across the screen frozen in one pose, and nothing
        ever puts it right. So: whoever is stalled gets restarted, every tick. */
+    let lastT = -1, lastMove = 0, nudges = 0
     const sync = () => {
       if (document.hidden || s.hidden) return
       const v = vids[s.clip].current
-      if (!v || v.readyState < 2) return
+      if (!v) return
       if (s.clip === 'crawl') {
-        if (anim?.playState === 'running' && v.paused) v.play().catch(() => {})
+        // paused: resume it. Not paused but the clock is frozen: a decoder waking
+        // up or a stalled fetch — `paused` is false in that state, so it has to be
+        // detected by the clock itself, not by the property.
+        if (v.paused) { v.play().catch(() => {}); nudges = 0 }
+        else if (!moving && !v.paused && crawl.currentTime > 0) begin()
+        else if (v.currentTime === lastT) {
+          if (lastMove && performance.now() - lastMove > 700) {
+            nudges++
+            v.play().catch(() => {})
+            if (nudges === 3) v.load()          // a wedged element needs a reload
+            if (nudges > 4) { lastMove = performance.now(); nudges = 0 }
+          }
+        }
+        if (v.currentTime !== lastT) { lastT = v.currentTime; lastMove = performance.now(); nudges = 0 }
       } else if (v.paused && !v.ended) {
         v.play().catch(() => {})
       }
@@ -156,6 +189,7 @@ export default function CrawlingBaby() {
 
     const look = window.setInterval(() => {
       sync()
+      if (!moving && crawl.readyState >= 2 && !crawl.paused) begin()
       // a frame callback that never arrives must not silence the smile for good
       if (s.wantLook && performance.now() - s.lookAt > 2000) { s.wantLook = false; cutting = 0 }
       if (s.clip !== 'crawl' || s.hidden || s.wantLook || !anim || anim.playState !== 'running') return
