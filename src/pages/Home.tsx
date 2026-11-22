@@ -10,13 +10,48 @@ import { addLove, loadAffection, type Affection } from '../lib/affection'
 import CrawlingBaby from '../components/CrawlingBaby'
 import Brand from '../components/Brand'
 import { weekScale } from './Landing'
+import { storage } from '../lib/storage'
+import { ago, dayOf, todayISO, type ContractionData, type KickData, type VisitData, type WeightData } from '../lib/tools'
 
-const TOOLS: Record<string, { title: string; text: string; tone: string }> = {
-  learn: { title: 'This week, explained', text: 'A little science about you two, every week.', tone: 'c-rose' },
-  scans: { title: 'Scans & reports', text: 'One folder, filed by week.', tone: 'c-sage' },
-  questions: { title: 'Questions for the doctor', text: 'Jot them down, tick them off.', tone: 'c-lav' },
-  bag: { title: 'Hospital bag', text: 'Wakes up at 35 weeks.', tone: 'c-peach' },
-  journal: { title: 'Little journal', text: 'Notes for baby to read one day.', tone: 'c-butter' },
+interface Tool { title: string; text: string; tone: string; to?: string; pregnantOnly?: boolean; icon: string }
+const TOOLS: Record<string, Tool> = {
+  kicks: { title: "Baby's movements", text: 'Tap along to every kick, roll and flutter.', tone: 'c-peach', to: '/tools/kicks', pregnantOnly: true, icon: '👣' },
+  visits: { title: 'Visits & notes', text: 'Appointments, what the doctor said, questions for next time.', tone: 'c-lav', to: '/tools/visits', icon: '🗓️' },
+  weight: { title: 'Weight', text: 'Your own numbers, gently. You can even hide them.', tone: 'c-sage', to: '/tools/weight', icon: '⚖️' },
+  contractions: { title: 'Contraction timer', text: 'Start, stop, breathe. Compared with your doctor\'s rule.', tone: 'c-rose', to: '/tools/contractions', pregnantOnly: true, icon: '⏱️' },
+  learn: { title: 'This week, explained', text: 'A little science about you two, every week.', tone: 'c-rose', icon: '✨' },
+  scans: { title: 'Scans & reports', text: 'One folder, filed by week.', tone: 'c-sage', icon: '🩻' },
+  bag: { title: 'Hospital bag', text: 'Wakes up at 35 weeks.', tone: 'c-peach', icon: '👜' },
+  journal: { title: 'Little journal', text: 'Notes for baby to read one day.', tone: 'c-butter', icon: '📔' },
+}
+// onboarding choices that are now covered by a tool
+const LIKE_TO_TOOL: Record<string, string> = { questions: 'visits' }
+
+/** one-line live summaries for the tool tiles */
+function useToolSummaries() {
+  const [sum, setSum] = useState<Record<string, string>>({})
+  useEffect(() => {
+    (async () => {
+      const [k, v, wt, c] = await Promise.all([storage.get<KickData>('kicks'), storage.get<VisitData>('visits'), storage.get<WeightData>('weight'), storage.get<ContractionData>('contractions')])
+      const out: Record<string, string> = {}
+      const lastKick = k?.active ?? k?.sessions?.[0]
+      if (k?.active) out.kicks = `Session running · ${k.active.taps.length} so far`
+      else if (lastKick) out.kicks = `Last: ${lastKick.taps.length} movements · ${ago(lastKick.end ?? lastKick.start)}`
+      const today = todayISO()
+      const next = v?.visits?.filter(x => x.date >= today).sort((a, b) => a.date.localeCompare(b.date))[0]
+      const openQs = v?.questions?.filter(q => !q.done).length ?? 0
+      if (next) out.visits = `Next: ${dayOf(next.date)}${openQs ? ` · ${openQs} question${openQs === 1 ? '' : 's'}` : ''}`
+      else if (openQs) out.visits = `${openQs} question${openQs === 1 ? '' : 's'} for next time`
+      const lastW = wt?.entries?.slice().sort((a, b) => b.date.localeCompare(a.date))[0]
+      if (lastW) out.weight = wt?.hideNumbers ? `Last noted ${dayOf(lastW.date)}` : `Last: ${lastW.kg.toFixed(1)} kg · ${dayOf(lastW.date)}`
+      const items = c?.items ?? []
+      const lastC = items[items.length - 1]
+      if (lastC && lastC.end == null) out.contractions = 'Timing one now…'
+      else if (lastC && Date.now() - lastC.start < 12 * 3600_000) out.contractions = `${items.filter(x => Date.now() - x.start < 12 * 3600_000).length} timed · last ${ago(lastC.start)}`
+      setSum(out)
+    })()
+  }, [])
+  return sum
 }
 
 function greeting() {
@@ -32,13 +67,16 @@ export default function Home() {
   const [bump, setBump] = useState<'' | 'kiss' | 'hug'>('')
   const bubble = useRef<WombBabyHandle>(null)
   const loveRef = useRef<Affection | null>(null)
+  const summaries = useToolSummaries()
   useEffect(() => { loadAffection().then(a => { loveRef.current = a; setLove(a) }) }, [])
   if (!ready) return null
   if (!profile) return <Navigate to="/start/hello" replace />
 
   const w = whereAreWe(profile.stage)
   const baby = profile.babyName.trim() || 'Little one'
-  const order = [...profile.likes.filter(l => l in TOOLS), ...Object.keys(TOOLS).filter(k => !profile.likes.includes(k))]
+  const liked = profile.likes.map(l => LIKE_TO_TOOL[l] ?? l)
+  const visible = Object.keys(TOOLS).filter(k => !(TOOLS[k].pregnantOnly && w && !w.pregnant))
+  const order = [...visible.filter(k => liked.includes(k)), ...visible.filter(k => !liked.includes(k) && TOOLS[k].to), ...visible.filter(k => !liked.includes(k) && !TOOLS[k].to)]
   const call = profile.callMe.toLowerCase()
   function count(kind: 'kiss' | 'hug') {
     if (!loveRef.current) return 0
@@ -134,13 +172,17 @@ export default function Home() {
             {order.map((k, n) => {
               const t = TOOLS[k]
               const locked = k === 'bag' && w?.pregnant && w.week < 35
+              const inner = <>
+                <span className={`tool-dot ${t.tone}`} aria-hidden="true">{t.icon}</span>
+                <h3>{t.title}</h3>
+                <p>{t.text}</p>
+                {t.to ? <span className="soon live">{summaries[k] ?? 'Open'} <span aria-hidden="true">→</span></span>
+                  : <span className="soon">{locked ? 'Opens at week 35' : 'Moving in soon'}</span>}
+              </>
               return (
-                <motion.div key={k} className={`tool ${profile.likes.includes(k) ? 'fav' : ''}`}
-                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .15 + n * .06 }}>
-                  <span className={`tool-dot ${t.tone}`} />
-                  <h3>{t.title}</h3>
-                  <p>{t.text}</p>
-                  <span className="soon">{locked ? `Opens at week 35` : 'Moving in soon'}</span>
+                <motion.div key={k} className={`tool ${liked.includes(k) ? 'fav' : ''} ${t.to ? 'ready' : ''}`}
+                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: .15 + n * .05 }}>
+                  {t.to ? <Link to={t.to} className="tool-link">{inner}</Link> : inner}
                 </motion.div>
               )
             })}

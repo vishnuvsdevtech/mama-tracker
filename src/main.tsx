@@ -7,6 +7,7 @@ import App from './App'
 import { installScrollState } from './lib/scrollState'
 import './styles/landing.css'
 import './styles/app.css'
+import './styles/tools.css'
 
 // The Claude preview is a single sandboxed file, so it keeps routes in memory.
 // The real site uses proper URLs under /mama-tracker/.

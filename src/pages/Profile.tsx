@@ -70,7 +70,7 @@ export default function Profile() {
         <div className="danger">
           <div>
             <b>Start over</b>
-            <p>Clears everything saved in this browser. There's no copy anywhere else, so this can't be undone.</p>
+            <p>Clears everything saved in this browser — your profile, visits, notes, weight, movements and contractions. There's no copy anywhere else, so this can't be undone.</p>
           </div>
           {confirm
             ? <div className="p-actions"><button className="btn btn-ghost btn-sm" onClick={() => setConfirm(false)}>Keep it</button><button className="btn btn-danger btn-sm" onClick={async () => { await reset(); nav('/') }}>Yes, clear it</button></div>

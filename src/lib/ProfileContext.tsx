@@ -46,7 +46,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const startEditing = useCallback(() => { if (profile) setDraft(profile) }, [profile])
 
   const reset = useCallback(async () => {
-    await storage.remove('profile'); await storage.remove('draft')
+    for (const k of ['profile', 'draft', 'affection', 'kicks', 'contractions', 'visits', 'weight']) await storage.remove(k)
     setProfile(null); setDraft(emptyProfile())
   }, [])
 
