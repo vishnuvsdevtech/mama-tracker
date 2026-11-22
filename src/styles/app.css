@@ -130,7 +130,7 @@
 .app{min-height:100vh}
 .me{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;color:var(--ink-2);background:var(--paper);padding:3px 3px 3px 16px;border-radius:999px;box-shadow:var(--shadow)}
 .me svg{border-radius:50%}
-.home{padding-top:40px;padding-bottom:80px}
+.home{padding-top:36px;padding-bottom:80px}
 .home-hero{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
 .home-title{font-family:var(--serif);font-weight:400;font-size:clamp(40px,5.4vw,66px);line-height:1.04;letter-spacing:-.02em;margin:10px 0 16px;font-variation-settings:"SOFT" 100,"opsz" 144}
 .home-title em{font-style:italic;color:var(--rose)}
@@ -229,7 +229,7 @@
 
 /* ============ kisses & hugs ============ */
 .love-col{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
-.love-col .stage{width:100%}
+.love-col .stage{width:100%;max-width:min(420px,52vh)}
 .stage.love{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .love-cursor{position:absolute;left:-100px;top:-100px;pointer-events:none;z-index:5;transform:translate(-50%,-55%);opacity:0;transition:opacity .15s}
 .love-cursor.show{opacity:1}
@@ -261,4 +261,7 @@
 .love-n b{font-family:var(--serif);font-weight:500;font-size:22px;color:var(--rose-deep);font-variant-numeric:tabular-nums}
 .love-n small{font-size:12px;font-weight:700;color:var(--ink-3)}
 .love-hint{margin:0;font-size:13px;font-weight:700;color:var(--ink-3);text-align:center}
-@media (max-width:900px){ .home-hero .love-col{order:-1} .home-hero .love-col .stage{max-width:360px} }
+@media (max-width:900px){ .home-hero{min-height:0;gap:20px} .home-hero .love-col{order:-1} .home-hero .love-col .stage{max-width:min(320px,42vh)} }
+
+/* the landing page pads every <section> by 96px; app screens set their own spacing */
+.home section,.ob-card{padding:0;scroll-margin-top:80px}
