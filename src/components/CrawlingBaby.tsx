@@ -7,7 +7,7 @@ import { HEART_PATH } from './Heart'
  * A little mascot that crawls along the bottom of the page.
  *  - crawl: seamless loop, moved across the screen at the speed the hands really travel
  *  - smile: every so often it stops, turns to the viewer and smiles, then crawls on
- *  - tickle: tap it and it giggles (with sound, since the tap allows audio)
+ *  - tickle: tap it and it giggles (silent — the sound was removed on request)
  * Clips come from Flow, cut and matted by make_set.py; manifest.json holds the cut points.
  */
 
@@ -30,7 +30,6 @@ export default function CrawlingBaby() {
   const box = useRef<HTMLDivElement>(null)
   const vids = { crawl: useRef<HTMLVideoElement>(null), smile: useRef<HTMLVideoElement>(null), tickle: useRef<HTMLVideoElement>(null) }
   const st = useRef<{ clip: Clip; nextLook: number; wantLook: boolean; lookAt: number; hidden: boolean; move?: (on: boolean) => void }>({ clip: 'crawl', nextLook: 0, wantLook: false, lookAt: 0, hidden: false })
-  const audio = useRef<HTMLAudioElement | null>(null)
 
   // arrive a moment after the page has settled, so the hero loads first
   useEffect(() => {
@@ -192,8 +191,6 @@ export default function CrawlingBaby() {
   function tickle() {
     const s = st.current
     hearts()
-    if (!audio.current) { audio.current = new Audio(base + 'baby-tickle.mp3'); audio.current.volume = 0.6 }
-    try { audio.current.currentTime = 0; audio.current.play().catch(() => {}) } catch { /* no audio here */ }
     if (reduce || broken) return
     if (s.clip === 'tickle') return
     s.wantLook = false
