@@ -157,8 +157,8 @@ h2 em{font-style:italic;color:var(--rose)}
 .pill{font-size:12px;font-weight:800;padding:6px 11px;border-radius:999px;background:var(--blush);color:var(--rose-deep)}
 .pill.sage{background:#E5EDDF;color:var(--sage-deep)}
 .doc{display:flex;gap:14px;align-items:center;padding:14px;border-radius:18px;background:var(--cream);margin-bottom:10px;opacity:0;transform:translateX(-14px);transition:opacity .5s, transform .6s cubic-bezier(.3,1.4,.5,1)}
-.in .doc{opacity:1;transform:none}
-.in .doc:nth-child(2){transition-delay:.12s}.in .doc:nth-child(3){transition-delay:.24s}.in .doc:nth-child(4){transition-delay:.36s}
+[data-in] .doc{opacity:1;transform:none}
+[data-in] .doc:nth-child(2){transition-delay:.12s}[data-in] .doc:nth-child(3){transition-delay:.24s}[data-in] .doc:nth-child(4){transition-delay:.36s}
 .doc .thumb{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;flex:none}
 .doc .thumb svg{width:26px;height:26px}
 .doc .t{flex:1;min-width:0}
@@ -169,10 +169,10 @@ h2 em{font-style:italic;color:var(--rose)}
 .chart .ch-h span{color:var(--ink-3);font-weight:700;font-size:12px}
 .chart svg{width:100%;height:auto;margin-top:8px}
 .chart .path{stroke-dasharray:420;stroke-dashoffset:420;transition:stroke-dashoffset 1.8s .4s ease-out}
-.in .chart .path{stroke-dashoffset:0}
+[data-in] .chart .path{stroke-dashoffset:0}
 .chart .pt{opacity:0;transition:opacity .3s}
-.in .chart .pt{opacity:1}
-.in .chart .pt:nth-of-type(1){transition-delay:.5s}.in .chart .pt:nth-of-type(2){transition-delay:1s}.in .chart .pt:nth-of-type(3){transition-delay:1.5s}.in .chart .pt:nth-of-type(4){transition-delay:2s}
+[data-in] .chart .pt{opacity:1}
+[data-in] .chart .pt:nth-of-type(1){transition-delay:.5s}[data-in] .chart .pt:nth-of-type(2){transition-delay:1s}[data-in] .chart .pt:nth-of-type(3){transition-delay:1.5s}[data-in] .chart .pt:nth-of-type(4){transition-delay:2s}
 .chart .note{font-size:12px;color:var(--ink-3);font-weight:600;margin:6px 2px 0}
 .float-tag{position:absolute;background:#fff;border-radius:16px;padding:10px 14px;box-shadow:var(--shadow);font-size:13px;font-weight:700;display:flex;gap:8px;align-items:center;animation:bob 5s ease-in-out infinite}
 .float-tag svg{width:18px;height:18px}
@@ -227,7 +227,7 @@ footer svg{display:inline;width:14px;height:14px;vertical-align:-2px;color:var(-
 
 /* reveal */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity .8s ease, transform .9s cubic-bezier(.2,.9,.3,1)}
-.reveal.in{opacity:1;transform:none}
+.reveal[data-in]{opacity:1;transform:none}
 .reveal.d1{transition-delay:.1s}.reveal.d2{transition-delay:.2s}.reveal.d3{transition-delay:.3s}.reveal.d4{transition-delay:.4s}
 
 /* responsive */
