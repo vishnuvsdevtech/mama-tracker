@@ -204,3 +204,61 @@
   .baby-preview{max-width:130px!important}
   .baby-preview .hint{display:none}
 }
+
+/* ============ crawling baby ============ */
+.baby-lane{position:fixed;left:0;right:0;bottom:0;height:150px;pointer-events:none;z-index:15;transition:transform .35s cubic-bezier(.3,1.2,.5,1)}
+.baby-lane::before{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(180deg,rgba(252,246,240,0),rgba(252,246,240,.88));pointer-events:none}
+.baby-lane.tucked{transform:translateY(115%)}
+.baby-crawler{position:absolute;left:0;bottom:10px;height:110px;pointer-events:auto;cursor:pointer;will-change:transform;-webkit-tap-highlight-color:transparent;outline-offset:4px}
+.baby-crawler.still{left:24px}
+.baby-crawler video,.baby-crawler img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .14s linear}
+.baby-crawler video.on,.baby-crawler img{opacity:1}
+.baby-crawler video::-webkit-media-controls{display:none!important}
+.baby-shadow{position:absolute;left:14%;right:12%;bottom:-3px;height:12px;border-radius:50%;background:radial-gradient(closest-side,rgba(120,80,60,.26),transparent);transition:transform .3s}
+.baby-crawler[data-clip="tickle"] .baby-shadow{transform:scaleX(.94)}
+.baby-crawler .heart-pop{z-index:2}
+.baby-nap,.baby-wake{position:fixed;right:16px;bottom:16px;pointer-events:auto;border:0;cursor:pointer;background:var(--paper);box-shadow:var(--shadow);color:var(--ink-3);z-index:16}
+.baby-nap{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;opacity:.75;transition:opacity .2s,transform .25s}
+.baby-nap:hover{opacity:1;transform:scale(1.08)}
+.baby-wake{display:flex;align-items:center;gap:8px;border-radius:999px;padding:9px 14px;font:800 13px var(--sans);color:var(--rose-deep)}
+@media (max-width:640px){
+  .baby-crawler{height:80px;bottom:8px}
+  .baby-lane{height:110px}
+}
+.baby-space{height:120px}@media (max-width:640px){.baby-space{height:96px}}
+
+/* ============ kisses & hugs ============ */
+.love-col{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
+.love-col .stage{width:100%}
+.stage.love{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.love-cursor{position:absolute;left:-100px;top:-100px;pointer-events:none;z-index:5;transform:translate(-50%,-55%);opacity:0;transition:opacity .15s}
+.love-cursor.show{opacity:1}
+.love-cursor>span{display:block;font-size:40px;line-height:1;filter:drop-shadow(0 4px 6px rgba(168,95,90,.25));transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
+.love-cursor.pucker>span{transform:scale(.78) rotate(-8deg)}
+.stage.hugging .love-cursor>span{transform:scale(1.25);animation:hugPulse .9s ease-in-out infinite}
+@keyframes hugPulse{50%{transform:scale(1.4)}}
+.kiss-stamp{position:absolute;z-index:4;font-size:34px;line-height:1;pointer-events:none;animation:stampIt 1.25s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes stampIt{
+  0%{transform:translate(-50%,-50%) scale(1.9) rotate(var(--r));opacity:0}
+  14%{transform:translate(-50%,-50%) scale(.92) rotate(var(--r));opacity:1}
+  22%{transform:translate(-50%,-50%) scale(1.05) rotate(var(--r))}
+  70%{opacity:1}
+  100%{transform:translate(-50%,-110%) scale(.85) rotate(var(--r));opacity:0}}
+/* the hug: the whole bubble gets squeezed and glows warm */
+.stage .womb-body{transition:transform .5s cubic-bezier(.3,1.4,.5,1),filter .5s}
+.stage.hugging .womb-body{animation:none;transform:scale(.955);filter:saturate(1.25) brightness(1.03)}
+.stage.hugging .baby{filter:drop-shadow(0 0 18px rgba(255,190,170,.9))}
+.stage.hugging .ring{stroke:#E58F86;animation-duration:1.1s}
+.stage.hugging .happy{opacity:1}.stage.hugging .open-eyes{opacity:0}
+.stage.hugging .cheek{opacity:.85;transform:scale(1.15)}
+.love-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.love-chip{display:flex;align-items:center;gap:10px;background:var(--paper);border:0;border-radius:999px;padding:8px 18px 8px 10px;box-shadow:var(--shadow);cursor:pointer;font-family:var(--sans);color:var(--ink);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.love-chip:hover{transform:translateY(-2px)}
+.love-chip.bump{animation:chipBump .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes chipBump{40%{transform:scale(1.12)}}
+.love-emoji{width:38px;height:38px;border-radius:50%;background:#FDEEE8;display:grid;place-items:center;font-size:20px}
+.love-n{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
+.love-n b{font-family:var(--serif);font-weight:500;font-size:22px;color:var(--rose-deep);font-variant-numeric:tabular-nums}
+.love-n small{font-size:12px;font-weight:700;color:var(--ink-3)}
+.love-hint{margin:0;font-size:13px;font-weight:700;color:var(--ink-3);text-align:center}
+@media (max-width:900px){ .home-hero .love-col{order:-1} .home-hero .love-col .stage{max-width:360px} }

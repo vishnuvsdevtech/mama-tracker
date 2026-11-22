@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useImperativeHandle, useRef, useState, type Ref } from 'react'
 import type { BabyExtra, BubbleTheme } from '../lib/profile'
 import { cleanId, shade } from './color'
 import { HEART_PATH } from './Heart'
@@ -24,11 +24,17 @@ interface Props {
   hint?: React.ReactNode
   label?: string
   className?: string
+  /** kiss & hug mode: tap the bubble to kiss, press and hold to hug. Return what baby says. */
+  love?: { onKiss: () => string | void; onHug: () => string | void }
+  ref?: Ref<WombBabyHandle>
 }
+
+export interface WombBabyHandle { kiss: () => void; hug: () => void }
+const HOLD_MS = 450
 
 export default function WombBaby({
   theme = 'rose', extra = 'curl', skin = '#F1C3A2', scale = 0.8, interactive = false,
-  followEyes = false, decor = true, lines = ['hi mama!'], hint, label, className = '',
+  followEyes = false, decor = true, lines = ['hi mama!'], hint, label, className = '', love, ref,
 }: Props) {
   const uid = cleanId(useId())
   const stage = useRef<HTMLDivElement>(null)
@@ -38,6 +44,11 @@ export default function WombBaby({
   const [say, setSay] = useState<string | null>(null)
   const [hearts, setHearts] = useState<{ id: number; x: number; y: number; dx: number; rot: number; s: number; c: string; d: number }[]>([])
   const li = useRef(0)
+  const [stamps, setStamps] = useState<{ id: number; x: number; y: number; r: number; e: string }[]>([])
+  const [inside, setInside] = useState(false)
+  const [hugging, setHugging] = useState(false)
+  const lipRef = useRef<HTMLSpanElement>(null)
+  const press = useRef<{ t: number; timer: number; hug: boolean; x: number; y: number } | null>(null)
   const timers = useRef<number[]>([])
   const b = BUBBLE_COLORS[theme]
   const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
@@ -62,18 +73,22 @@ export default function WombBaby({
   useEffect(() => () => timers.current.forEach(clearTimeout), [])
 
   function hello(ev?: React.MouseEvent) {
-    if (!interactive) return
+    if (!interactive || love) return
+    react(lines[li.current++ % lines.length], ev && ev.clientX > 0 ? ev.clientX : undefined, ev && ev.clientY > 0 ? ev.clientY : undefined, 5)
+  }
+
+  function react(line: string, cx?: number, cy?: number, n = 5) {
     setMood('giggle'); setKick(k => k + 1)
-    setSay(lines[li.current++ % lines.length])
+    setSay(line)
     timers.current.push(window.setTimeout(() => setMood(''), 900))
     timers.current.push(window.setTimeout(() => setSay(null), 1800))
     if (reduce || !stage.current) return
     const r = stage.current.getBoundingClientRect()
-    const x = ev && ev.clientX > 0 ? ev.clientX - r.left : r.width / 2
-    const y = ev && ev.clientY > 0 ? ev.clientY - r.top : r.height * 0.45
+    const x = cx != null ? cx - r.left : r.width / 2
+    const y = cy != null ? cy - r.top : r.height * 0.45
     const colors = ['#E58F86', '#C9837C', '#F1A9A0', '#E7C67A', '#A7B89C']
     const now = Date.now()
-    const made = Array.from({ length: 5 }, (_, i) => ({
+    const made = Array.from({ length: n }, (_, i) => ({
       id: now + i, x: x + (Math.random() * 30 - 15), y, dx: Math.random() * 90 - 45, rot: Math.random() * 50 - 25,
       s: 14 + Math.random() * 16, c: colors[i % colors.length], d: i * 70,
     }))
@@ -81,17 +96,85 @@ export default function WombBaby({
     timers.current.push(window.setTimeout(() => setHearts(h => h.filter(x => !made.includes(x))), 2000))
   }
 
+  /* ---------- kiss & hug ---------- */
+  function local(e: { clientX: number; clientY: number }) {
+    const r = stage.current!.getBoundingClientRect()
+    const x = e.clientX - r.left, y = e.clientY - r.top
+    const cx = r.width / 2, cy = r.height * (215 / 430), rad = r.width * (176 / 400)
+    return { x, y, inside: Math.hypot(x - cx, y - cy) < rad }
+  }
+  function moveLip(x: number, y: number) {
+    const el = lipRef.current
+    if (el) { el.style.left = `${x}px`; el.style.top = `${y}px` }
+  }
+  function stamp(x: number, y: number, e: string) {
+    const id = Date.now() + Math.random()
+    setStamps(s => [...s, { id, x, y, r: Math.random() * 40 - 20, e }])
+    timers.current.push(window.setTimeout(() => setStamps(s => s.filter(t => t.id !== id)), 1300))
+  }
+  function doKiss(cx?: number, cy?: number) {
+    const r = stage.current?.getBoundingClientRect()
+    if (r) stamp(cx != null ? cx - r.left : r.width / 2 + (Math.random() * 60 - 30), cy != null ? cy - r.top : r.height * 0.4, '💋')
+    react(love?.onKiss() || 'mwah!', cx, cy, 3)
+  }
+  function doHug() {
+    setHugging(false)
+    react(love?.onHug() || 'so warm!', undefined, undefined, 8)
+  }
+  useImperativeHandle(ref, () => ({
+    kiss: () => doKiss(),
+    hug: () => { setHugging(true); timers.current.push(window.setTimeout(doHug, 700)) },
+  }))
+  const loveHandlers = love ? {
+    onPointerMove: (e: React.PointerEvent) => {
+      const p = local(e); moveLip(p.x, p.y)
+      if (e.pointerType === 'mouse' && p.inside !== inside) setInside(p.inside)
+      if (press.current && !p.inside && !press.current.hug) { clearTimeout(press.current.timer); press.current = null }
+    },
+    onPointerLeave: () => {
+      setInside(false)
+      if (press.current) { clearTimeout(press.current.timer); if (press.current.hug) doHug(); press.current = null }
+    },
+    onPointerDown: (e: React.PointerEvent) => {
+      const p = local(e)
+      if (!p.inside) return
+      moveLip(p.x, p.y)
+      const cur = { t: performance.now(), hug: false, x: e.clientX, y: e.clientY, timer: 0 }
+      cur.timer = window.setTimeout(() => { cur.hug = true; setHugging(true) }, HOLD_MS)
+      press.current = cur
+      lipRef.current?.classList.add('pucker')
+    },
+    onPointerUp: () => {
+      lipRef.current?.classList.remove('pucker')
+      const cur = press.current; press.current = null
+      if (!cur) return
+      clearTimeout(cur.timer)
+      if (cur.hug) doHug(); else doKiss(cur.x, cur.y)
+    },
+    onPointerCancel: () => {
+      const cur = press.current; press.current = null
+      if (cur) { clearTimeout(cur.timer); if (cur.hug) doHug() }
+      setHugging(false)
+    },
+    onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  } : {}
+
   return (
     <div
+      {...loveHandlers}
       ref={stage}
-      className={`stage ${mood} ${className}`}
+      className={`stage ${mood} ${love ? 'love' : ''} ${hugging ? 'hugging' : ''} ${className}`}
       data-kick={kick % 2}
       onClick={hello}
-      onKeyDown={e => { if (interactive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); hello() } }}
-      role={interactive ? 'button' : 'img'}
-      tabIndex={interactive ? 0 : undefined}
-      aria-label={label ?? 'A little baby floating in a bubble'}
-      style={{ cursor: interactive ? 'pointer' : 'default' }}
+      onKeyDown={e => {
+        if (love && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); doKiss() }
+        else if (love && (e.key === 'h' || e.key === 'H')) { e.preventDefault(); setHugging(true); timers.current.push(window.setTimeout(doHug, 700)) }
+        else if (interactive && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); hello() }
+      }}
+      role={interactive || love ? 'button' : 'img'}
+      tabIndex={interactive || love ? 0 : undefined}
+      aria-label={label ?? (love ? 'Your baby. Press Enter to send a kiss, H to send a hug.' : 'A little baby floating in a bubble')}
+      style={{ cursor: love ? (inside ? 'none' : 'default') : interactive ? 'pointer' : 'default', touchAction: love ? 'manipulation' : undefined }}
     >
       <svg className="womb" viewBox="0 0 400 430" aria-hidden="true">
         <defs>
@@ -196,6 +279,10 @@ export default function WombBaby({
           style={{ left: h.x - 13, top: h.y - 13, width: h.s, height: h.s, animationDelay: `${h.d}ms`, ['--dx' as string]: `${h.dx}px`, ['--rot' as string]: `${h.rot}deg` }}>
           <path d={HEART_PATH} fill={h.c} />
         </svg>
+      ))}
+      {love && <span ref={lipRef} className={`love-cursor ${inside ? 'show' : ''}`} aria-hidden="true"><span>{hugging ? '🤗' : '💋'}</span></span>}
+      {stamps.map(t => (
+        <span key={t.id} className="kiss-stamp" aria-hidden="true" style={{ left: t.x, top: t.y, ['--r' as string]: `${t.r}deg` }}>{t.e}</span>
       ))}
       {hint && <div className="hint">{hint}</div>}
     </div>

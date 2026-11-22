@@ -1,0 +1,29 @@
+{
+  "fps": 24.0,
+  "width": 468,
+  "height": 320,
+  "clips": {
+    "crawl": {
+      "frames": 35,
+      "duration": 1.458
+    },
+    "smile": {
+      "frames": 88,
+      "duration": 3.667,
+      "enterAt": 10,
+      "exitTo": 25,
+      "enterDiff": 5.35,
+      "exitDiff": 8.44
+    },
+    "tickle": {
+      "frames": 66,
+      "duration": 2.75,
+      "enterAt": 10,
+      "exitTo": 24,
+      "enterDiff": 5.53,
+      "exitDiff": 8.57,
+      "audio": true
+    }
+  },
+  "loop": "crawl"
+}

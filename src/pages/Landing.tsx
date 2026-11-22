@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import WombBaby from '../components/WombBaby'
+import CrawlingBaby from '../components/CrawlingBaby'
 import IconDefs from '../components/IconDefs'
 import Brand from '../components/Brand'
 import { Heart, Check, Arrow } from '../components/Heart'
@@ -257,6 +258,8 @@ export default function Landing() {
             <span>General information only — not medical advice. Always follow your doctor.</span>
           </div>
         </footer>
+      <div className="baby-space" aria-hidden="true" />
+      <CrawlingBaby />
     </>
   )
 }

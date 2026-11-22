@@ -1,12 +1,14 @@
+import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import { motion } from 'motion/react'
 import { useProfile } from '../lib/ProfileContext'
 import { ageText, fmtDate, whereAreWe } from '../lib/profile'
 import { babyFact, mamaFact, sizeFor, trimester } from '../lib/weeks'
 import MamaAvatar from '../components/MamaAvatar'
-import WombBaby from '../components/WombBaby'
+import WombBaby, { type WombBabyHandle } from '../components/WombBaby'
+import { addLove, loadAffection, type Affection } from '../lib/affection'
+import CrawlingBaby from '../components/CrawlingBaby'
 import Brand from '../components/Brand'
-import { Heart } from '../components/Heart'
 import { weekScale } from './Landing'
 
 const TOOLS: Record<string, { title: string; text: string; tone: string }> = {
@@ -22,15 +24,41 @@ function greeting() {
   return h < 5 ? 'Up late' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'
 }
 
+const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)]
+
 export default function Home() {
   const { ready, profile } = useProfile()
+  const [love, setLove] = useState<Affection | null>(null)
+  const [bump, setBump] = useState<'' | 'kiss' | 'hug'>('')
+  const bubble = useRef<WombBabyHandle>(null)
+  const loveRef = useRef<Affection | null>(null)
+  useEffect(() => { loadAffection().then(a => { loveRef.current = a; setLove(a) }) }, [])
   if (!ready) return null
   if (!profile) return <Navigate to="/start/hello" replace />
 
   const w = whereAreWe(profile.stage)
   const baby = profile.babyName.trim() || 'Little one'
-  const call = profile.callMe
   const order = [...profile.likes.filter(l => l in TOOLS), ...Object.keys(TOOLS).filter(k => !profile.likes.includes(k))]
+  const call = profile.callMe.toLowerCase()
+  function count(kind: 'kiss' | 'hug') {
+    if (!loveRef.current) return 0
+    const next = addLove(loveRef.current, kind)
+    loveRef.current = next; setLove(next)
+    setBump(''); requestAnimationFrame(() => setBump(kind))
+    return kind === 'kiss' ? next.kisses : next.hugs
+  }
+  const onKiss = () => {
+    const n = count('kiss')
+    if (n === 1) return 'my first kiss!'
+    if (n % 25 === 0) return `${n} kisses, ${call}!`
+    return pick(['mwah!', 'hehe!', 'again!', `love you, ${call}`, 'that tickles!', 'mwah mwah!'])
+  }
+  const onHug = () => {
+    const n = count('hug')
+    if (n === 1) return 'my first hug!'
+    if (n % 10 === 0) return `${n} hugs!`
+    return pick(['so warm…', 'squeeze!', `I feel you, ${call}`, 'cosy!', 'more hugs'])
+  }
   const pct = w?.pregnant ? Math.min(100, Math.max(0, ((280 - (w.daysToGo ?? 0)) / 280) * 100)) : 100
 
   return (
@@ -55,7 +83,7 @@ export default function Home() {
             </> : w ? <>
               <h1 className="home-title">{baby} is <em>{ageText(w.ageDays!)}.</em></h1>
               <p className="lede">Every day counts up from here. Feeds, sleeps and the paediatrician's questions are moving in next.</p>
-            </> : <h1 className="home-title">Hello, <em>{call}.</em></h1>}
+            </> : <h1 className="home-title">Hello, <em>{profile.callMe}.</em></h1>}
 
             {w?.pregnant && (
               <div className="stat-row">
@@ -74,10 +102,23 @@ export default function Home() {
               </div>
             )}
           </div>
-          <WombBaby interactive followEyes theme={profile.babyLook.bubble} extra={profile.babyLook.extra} skin={profile.babyLook.skin}
-            scale={w?.pregnant ? weekScale(w.week) : 0.95}
-            lines={[`hi ${call.toLowerCase()}!`, 'I can hear you', '*tiny kick*', 'love you already', 'hic!']}
-            hint={<><Heart size={13} color="#C9837C" />Tap {baby}</>} />
+          <div className="love-col">
+            <WombBaby ref={bubble} followEyes theme={profile.babyLook.bubble} extra={profile.babyLook.extra} skin={profile.babyLook.skin}
+              scale={w?.pregnant ? weekScale(w.week) : 0.95}
+              love={{ onKiss, onHug }}
+              label={`${baby}. Tap to send a kiss, press and hold to hug.`} />
+            <div className="love-row">
+              <button type="button" className={`love-chip ${bump === 'kiss' ? 'bump' : ''}`} onClick={() => bubble.current?.kiss()} aria-label={`Send ${baby} a kiss. ${love?.kisses ?? 0} so far.`}>
+                <span className="love-emoji" aria-hidden="true">💋</span>
+                <span className="love-n"><b>{love?.kisses ?? 0}</b><small>{love?.kisses === 1 ? 'kiss' : 'kisses'}{love?.todayKisses ? ` · ${love.todayKisses} today` : ''}</small></span>
+              </button>
+              <button type="button" className={`love-chip ${bump === 'hug' ? 'bump' : ''}`} onClick={() => bubble.current?.hug()} aria-label={`Send ${baby} a hug. ${love?.hugs ?? 0} so far.`}>
+                <span className="love-emoji" aria-hidden="true">🤗</span>
+                <span className="love-n"><b>{love?.hugs ?? 0}</b><small>{love?.hugs === 1 ? 'hug' : 'hugs'}{love?.todayHugs ? ` · ${love.todayHugs} today` : ''}</small></span>
+              </button>
+            </div>
+            <p className="love-hint">Tap the bubble to kiss {baby} · press and hold to hug</p>
+          </div>
         </motion.section>
 
         {w?.pregnant && (
@@ -106,7 +147,9 @@ export default function Home() {
           </div>
         </section>
         <p className="disclaim center">General information only — not medical advice. Your doctor knows you two best.</p>
+        <div className="baby-space" aria-hidden="true" />
       </main>
+      <CrawlingBaby />
     </div>
   )
 }
