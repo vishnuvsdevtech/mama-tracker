@@ -1,92 +1,48 @@
 # Nine months, organised
 
-**Live:** https://vishnuvsdevtech.github.io/mama-tracker/
+A private pregnancy-to-parenting companion. React + Vite + TypeScript, with React Router for pages and Motion for animation.
+Everything is saved in the browser through one async file (`src/lib/storage.ts`). There's no account, no server and no tracking.
 
-A private pregnancy tracker. Dates worked out, appointments in order, documents to
-collect, a bag list that waits, and a place to write down questions.
+## Run it
 
-**Nothing leaves the browser.** No account, no server, no analytics, no request
-after the page loads. Everything lives in `localStorage` on one device, and the
-trash button clears it.
-
-## What it deliberately does not do
-
-No diagnosis, no medicine information, no symptom checker, no advice on whether
-something is normal. Every number on the page is arithmetic on a date the user
-typed. This was a deliberate scope decision: a consumer health site that implies
-medical guidance carries liability that a solo developer should not accept, and
-the useful part — organisation — needs none of it.
-
-The page states this in a visible card rather than a footer.
-
-## The three anchors
-
-The user enters **any one** of first-day-of-last-period, due date, or current
-week; the other two are computed and written back, so they can never disagree.
-
-```
-due  = lmp + 280 days        (Naegele's rule)
-lmp  = due − 280 days
-lmp  = today − (week × 7)
+```bash
+npm install
+npm run dev            # http://localhost:5173/mama-tracker/
+npm run build          # production build in dist/ (plus 404.html so deep links work on GitHub Pages)
+npm run build:preview  # one self-contained HTML file in dist-preview/ (in-memory routes)
 ```
 
-Naegele is a convention, not a measurement — the README and the page both say a due
-date is a date, not a deadline.
+## Routes
 
-## Design decisions worth keeping
+| Path | Page |
+|---|---|
+| `/` | Landing page with the interactive baby and the week slider |
+| `/start/hello` → `you` → `look` → `when` → `baby` → `likes` → `ready` | Onboarding |
+| `/start/<step>?edit=1` | Edit a single onboarding step from the profile page |
+| `/home` | Her home: week, size, progress ring, facts, her tools in the order she picked |
+| `/profile` | Profile summary, edit links, start over |
 
-- **The bag list locks until five weeks out.** A packing list shown at week 9 is
-  noise that makes the whole page feel like a checklist generator. Delaying it
-  makes it feel attentive.
-- **"Next up" is chosen by date, not by week number.** The first version picked the
-  first checkpoint with `week >= current`, which labelled a test happening *today*
-  as "in 3 days". Comparing computed dates gives the right tense.
-- **Ticked documents are struck through, not just ticked.** In a list of fourteen
-  the helpful signal is what is missing.
-- **Warm rather than clinical.** Muted rose, sage and clay; serif headings; soft
-  card shadows. A medical blue-grey palette would have made it read as a form.
-- **Night mode is a real palette, not an inversion.** Late pregnancy involves a lot
-  of 3 a.m. phone use.
+## Where things live
 
-## Two states, one page
+```
+src/
+  lib/storage.ts         the only file that touches localStorage (swap it for a backend later)
+  lib/profile.ts         Profile type, avatar options, date arithmetic (week, due date, baby's age)
+  lib/weeks.ts           fruit sizes, weekly facts, month → week mapping
+  lib/ProfileContext.tsx saved profile + onboarding draft
+  components/WombBaby    animated baby in a bubble (theme, accessory, skin, scale, tap-to-hello)
+  components/MamaAvatar  avatar builder output (hair, skin, hair or scarf colour, outfit, bump)
+  pages/                 Landing, Onboarding, Home, Profile
+```
 
-The page changes shape at the birth rather than handing the parent a new app:
+## Deploy (GitHub Pages)
 
-| | before birth | after birth |
-|---|---|---|
-| ring | counts **down** to the due date | counts **up** from the birth date |
-| next | appointments by week | the next date *you* entered |
-| checklist | documents to collect | a daily log: feed, sleep, nappy |
-| questions | for the next visit | for the paediatrician |
+1. Push to `main` in the `mama-tracker` repo.
+2. In GitHub, go to **Settings → Pages → Source** and choose **GitHub Actions**.
+3. `.github/workflows/deploy.yml` builds the app and publishes it to `https://<user>.github.io/mama-tracker/`.
 
-Press "the baby has arrived", enter the real date — births are rarely on the due
-date — and the pregnancy panels retire. Everything already entered stays.
+If the repo name changes, update `base` in `vite.config.ts`.
 
-## The summary
+## What this app does not do
 
-Plain sentences built from the record: age or weeks remaining, entries in the last
-week, the next date on the schedule. **It is not analysis.** A single family's
-record has no statistical signal, so anything the page "discovered" would be
-invented. The summary describes and does date arithmetic, and says so on the page.
-
-The immunisation section is deliberately empty until the parent types in their own
-dates. The app never supplies a schedule.
-
-## No backend, by design
-
-Everything is `localStorage` on one device. No account, no server, no analytics, no
-request after the page loads — `grep` for `fetch(` in `assets/` and find nothing.
-
-All persistence sits behind `assets/store.js`, whose four methods
-(`load`, `save`, `listProfiles`, `create`) are async. If this ever gets a backend,
-that file is replaced and nothing above it changes. Making them async now was the
-one piece of future-proofing worth paying for.
-
-## If this ever became something real
-
-1. **A doctor reviews every medical-adjacent word** before it is public. That is the
-   cost that makes this a product rather than a page.
-2. **Documents are referenced, not stored.** Uploading scans means holding health
-   data, which means consent, retention rules and a breach plan.
-3. **Keep it private-by-default.** The strongest feature is that nothing is sent
-   anywhere; a login would weaken it.
+It doesn't diagnose, give medicine information, check symptoms, or guess the baby's sex. In India, revealing the baby's sex before birth is prohibited under the PCPNDT Act. Every number it shows is arithmetic on a date she typed.
