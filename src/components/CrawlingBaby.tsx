@@ -29,7 +29,7 @@ export default function CrawlingBaby() {
 
   const box = useRef<HTMLDivElement>(null)
   const vids = { crawl: useRef<HTMLVideoElement>(null), smile: useRef<HTMLVideoElement>(null), tickle: useRef<HTMLVideoElement>(null) }
-  const st = useRef<{ clip: Clip; nextLook: number; wantLook: boolean; hidden: boolean; move?: (on: boolean) => void }>({ clip: 'crawl', nextLook: 0, wantLook: false, hidden: false })
+  const st = useRef<{ clip: Clip; nextLook: number; wantLook: boolean; lookAt: number; hidden: boolean; move?: (on: boolean) => void }>({ clip: 'crawl', nextLook: 0, wantLook: false, lookAt: 0, hidden: false })
   const audio = useRef<HTMLAudioElement | null>(null)
 
   // arrive a moment after the page has settled, so the hero loads first
@@ -132,11 +132,31 @@ export default function CrawlingBaby() {
       const v = crawl as HTMLVideoElement & { requestVideoFrameCallback?: (cb: () => void) => number }
       cutting = v.requestVideoFrameCallback ? v.requestVideoFrameCallback(waitForFrame) : requestAnimationFrame(waitForFrame)
     }
+    /* Two clocks drive this creature and the browser does not keep them together.
+       Position is a Web Animation on the document timeline; the legs are a video.
+       When the machine sleeps, a tab is restored from bfcache, or the browser
+       suspends a muted video by itself, the video stops while the animation keeps
+       running — the baby slides across the screen frozen in one pose, and nothing
+       ever puts it right. So: whoever is stalled gets restarted, every tick. */
+    const sync = () => {
+      if (document.hidden || s.hidden) return
+      const v = vids[s.clip].current
+      if (!v || v.readyState < 2) return
+      if (s.clip === 'crawl') {
+        if (anim?.playState === 'running' && v.paused) v.play().catch(() => {})
+      } else if (v.paused && !v.ended) {
+        v.play().catch(() => {})
+      }
+    }
+
     const look = window.setInterval(() => {
+      sync()
+      // a frame callback that never arrives must not silence the smile for good
+      if (s.wantLook && performance.now() - s.lookAt > 2000) { s.wantLook = false; cutting = 0 }
       if (s.clip !== 'crawl' || s.hidden || s.wantLook || !anim || anim.playState !== 'running') return
       const x = xNow()
       const fully = x > size.vw * 0.08 && x + size.w < size.vw * 0.92
-      if (fully && performance.now() > s.nextLook) { s.wantLook = true; waitForFrame() }
+      if (fully && performance.now() > s.nextLook) { s.wantLook = true; s.lookAt = performance.now(); waitForFrame() }
     }, 250)
 
     const pauseAll = (hidden: boolean) => {
@@ -147,7 +167,13 @@ export default function CrawlingBaby() {
       else v?.play().catch(() => {})
     }
     const onVis = () => pauseAll(document.hidden)
+    // visibilitychange does not fire on a machine wake or a bfcache restore, and
+    // those are exactly the two cases that leave the two clocks apart
+    const onWake = () => { pauseAll(document.hidden); sync() }
     document.addEventListener('visibilitychange', onVis)
+    window.addEventListener('pageshow', onWake)
+    window.addEventListener('focus', onWake)
+    document.addEventListener('resume' as never, onWake as EventListener)
 
     return () => {
       clearTimeout(warm); clearTimeout(offTimer); clearInterval(look); cancelAnimationFrame(cutting)
@@ -156,6 +182,9 @@ export default function CrawlingBaby() {
       smile.removeEventListener('ended', onSmileEnd)
       tickle.removeEventListener('ended', onTickleEnd)
       document.removeEventListener('visibilitychange', onVis)
+      window.removeEventListener('pageshow', onWake)
+      window.removeEventListener('focus', onWake)
+      document.removeEventListener('resume' as never, onWake as EventListener)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [napping, reduce, broken])
