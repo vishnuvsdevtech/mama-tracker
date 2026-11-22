@@ -39,6 +39,15 @@ function Hello({ d }: StepProps) {
 function You({ d, up }: StepProps) {
   const custom = !CALL_ME.includes(d.callMe)
   const [other, setOther] = useState(custom ? d.callMe : '')
+  // If her name is still empty (or still the last chip we filled in), a chip fills it too,
+  // so one tap is enough to move on. A name she typed herself is never overwritten.
+  const autoName = useRef<string | null>(null)
+  const pickCall = (c: string) => {
+    const patch: Partial<Profile> = { callMe: c || 'Amma' }
+    const name = d.mamaName.trim()
+    if (c && (!name || name === autoName.current)) { patch.mamaName = c; autoName.current = c }
+    up(patch)
+  }
   return (
     <div>
       <p className="eyebrow">About you</p>
@@ -46,16 +55,16 @@ function You({ d, up }: StepProps) {
       <label className="field">
         <span className="sr">Your name</span>
         <input autoFocus value={d.mamaName} maxLength={40} placeholder="Your name"
-          onChange={e => up({ mamaName: e.target.value })} />
+          onChange={e => { autoName.current = null; up({ mamaName: e.target.value }) }} />
       </label>
 
       <h2 className="ob-q">And what will the little one call you?</h2>
       <div className="chips">
         {CALL_ME.map(c => (
-          <button key={c} type="button" className={`chip ${d.callMe === c ? 'on' : ''}`} onClick={() => { up({ callMe: c }); setOther('') }}>{c}</button>
+          <button key={c} type="button" className={`chip ${d.callMe === c ? 'on' : ''}`} onClick={() => { pickCall(c); setOther('') }}>{c}</button>
         ))}
         <input className={`chip chip-input ${custom && d.callMe ? 'on' : ''}`} placeholder="Something else…" value={other} maxLength={16}
-          onChange={e => { setOther(e.target.value); up({ callMe: e.target.value || 'Amma' }) }} aria-label="Something else" />
+          onChange={e => { setOther(e.target.value); pickCall(e.target.value) }} aria-label="Something else" />
       </div>
 
       <div className="speech-row">
