@@ -47,7 +47,7 @@ export default function Profile() {
             </div>
           </div>
           <div className="p-card">
-            <div className="p-baby"><WombBaby decor={false} theme={profile.babyLook.bubble} extra={profile.babyLook.extra} skin={profile.babyLook.skin} scale={0.95} /></div>
+            <div className="p-baby"><WombBaby decor={false} scale={0.95} /></div>
             <div className="p-body">
               <span className="eyebrow">Little one</span>
               <h2>{profile.babyName || 'Little one'}</h2>

@@ -94,7 +94,7 @@ function FootIcon() {
       <ellipse cx="25" cy="30" rx="11" ry="15" transform="rotate(-14 25 30)" fill="#EDB091" />
       <circle cx="16.5" cy="11" r="4.4" fill="#EDB091" /><circle cx="23" cy="8.4" r="3.7" fill="#EDB091" /><circle cx="28.8" cy="9.2" r="3.2" fill="#EDB091" />
       <circle cx="33.4" cy="12" r="2.8" fill="#EDB091" /><circle cx="36.6" cy="16.2" r="2.4" fill="#EDB091" />
-      <ellipse cx="22" cy="33" rx="5" ry="7" transform="rotate(-14 22 33)" fill="#F1B596" opacity=".45" />
+      <ellipse cx="22" cy="33" rx="5" ry="7" transform="rotate(-14 22 33)" fill="#FF88A6" opacity=".45" />
     </svg>
   )
 }

@@ -9,8 +9,8 @@ export function Heart({ size = 16, color = 'currentColor', className, style }: {
 export function Check({ size = 16 }: { size?: number }) {
   return (
     <svg viewBox="0 0 24 24" width={size} height={size} aria-hidden="true">
-      <circle cx="12" cy="12" r="11" fill="#E5EDDF" />
-      <path d="M7 12.5l3.2 3L17 8.8" fill="none" stroke="#71866A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="11" fill="#FFE5DC" />
+      <path d="M7 12.5l3.2 3L17 8.8" fill="none" stroke="#C8506A" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

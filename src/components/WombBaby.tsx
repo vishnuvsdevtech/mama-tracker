@@ -1,30 +1,30 @@
-import { useEffect, useId, useImperativeHandle, useRef, useState, type Ref } from 'react'
-import type { BabyExtra, BubbleTheme } from '../lib/profile'
-import { cleanId, shade } from './color'
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
 import { HEART_PATH } from './Heart'
+import sacUrl from '../assets/womb/sac.webp'
+import babyUrl from '../assets/womb/baby.webp'
 
-export const BUBBLE_COLORS: Record<BubbleTheme, { stops: [string, string, string]; ring: string; swatch: string }> = {
-  rose:     { stops: ['#FFF1EA', '#FBD9CD', '#F2BBAE'], ring: '#F1C4B8', swatch: '#F4C6BA' },
-  peach:    { stops: ['#FFF5EC', '#FCE0C6', '#F5C29A'], ring: '#F3CDA9', swatch: '#F7CFAE' },
-  butter:   { stops: ['#FFFAEA', '#FBEDC1', '#F1D693'], ring: '#EED9A2', swatch: '#F5E1A6' },
-  sage:     { stops: ['#F5F9F0', '#DFE9D6', '#C2D3B5'], ring: '#CCDAC1', swatch: '#CFDDC3' },
-  sky:      { stops: ['#F2F8FC', '#D9EAF4', '#B8D5E7'], ring: '#C4DAE8', swatch: '#C5DDEC' },
-  lavender: { stops: ['#F8F3FC', '#E7DCF3', '#CFBDE6'], ring: '#D8CAEA', swatch: '#DACDEC' },
-}
+/*
+ * The womb is the illustrated baby-in-a-pink-sac, split into two layers so the baby can
+ * float inside: the sac (with the baby area painted over) and the baby on top.
+ * All geometry below is in the source pixels of those images (594 × 634).
+ */
+const W = 594, H = 634
+const BABY = { x: 89, y: 81, w: 419, h: 437 }
+// the sac outline, fitted as a rotated ellipse: centre, full axes, angle of the first axis
+const SAC = { cx: 295.6, cy: 316.2, a: 544, b: 657, deg: 145.9 }
+const pct = (v: number, of: number) => `${(v / of) * 100}%`
+
+export const WOMB_PINKS = ['#FE6490', '#F9517F', '#FE96B0', '#FEB0C2', '#FFC6B3']
 
 interface Props {
-  theme?: BubbleTheme
-  extra?: BabyExtra
-  skin?: string
-  scale?: number            // 0.3 – 1, grows with the week
+  scale?: number            // 0.3 – 1, grows with the week; the womb grows from 80% to full size
   interactive?: boolean
-  followEyes?: boolean
-  decor?: boolean           // ripples + sparkles
+  decor?: boolean           // floating hearts, sparkles and the soft halo
   lines?: string[]          // what baby says when tapped
   hint?: React.ReactNode
   label?: string
   className?: string
-  /** kiss & hug mode: tap the bubble to kiss, press and hold to hug. Return what baby says. */
+  /** kiss & hug mode: tap the womb to kiss, press and hold to hug. Return what baby says. */
   love?: { onKiss: () => string | void; onHug: () => string | void }
   ref?: Ref<WombBabyHandle>
 }
@@ -32,13 +32,25 @@ interface Props {
 export interface WombBabyHandle { kiss: () => void; hug: () => void }
 const HOLD_MS = 450
 
+const DECOR: { x: number; y: number; s: number; c: string; d: number; kind: 'heart' | 'spark' | 'dot' }[] = [
+  { x: 7, y: 9, s: 46, c: '#FE6490', d: 0, kind: 'heart' },
+  { x: 14, y: 25, s: 22, c: '#FEB0C2', d: -1.4, kind: 'heart' },
+  { x: 88, y: 8, s: 24, c: '#FE6490', d: -2.2, kind: 'heart' },
+  { x: 90, y: 30, s: 36, c: '#FE96B0', d: -.7, kind: 'heart' },
+  { x: 9, y: 82, s: 40, c: '#FE6490', d: -3, kind: 'heart' },
+  { x: 25, y: 93, s: 20, c: '#FEB0C2', d: -1.9, kind: 'heart' },
+  { x: 91, y: 70, s: 20, c: '#FEB0C2', d: -2.6, kind: 'heart' },
+  { x: 85, y: 88, s: 26, c: '#fff', d: -1, kind: 'spark' },
+  { x: 93, y: 95, s: 16, c: '#fff', d: -2.3, kind: 'spark' },
+  { x: 4, y: 52, s: 8, c: '#FE96B0', d: -1.2, kind: 'dot' },
+  { x: 95, y: 20, s: 7, c: '#FE96B0', d: -2.8, kind: 'dot' },
+]
+
 export default function WombBaby({
-  theme = 'rose', extra = 'curl', skin = '#F1C3A2', scale = 0.8, interactive = false,
-  followEyes = false, decor = true, lines = ['hi mama!'], hint, label, className = '', love, ref,
+  scale = 0.8, interactive = false, decor = true, lines = ['hi mama!'], hint, label, className = '', love, ref,
 }: Props) {
-  const uid = cleanId(useId())
   const stage = useRef<HTMLDivElement>(null)
-  const pupils = useRef<SVGGElement>(null)
+  const art = useRef<HTMLDivElement>(null)
   const [mood, setMood] = useState<'' | 'giggle'>('')
   const [kick, setKick] = useState(0)
   const [say, setSay] = useState<string | null>(null)
@@ -50,13 +62,10 @@ export default function WombBaby({
   const lipRef = useRef<HTMLSpanElement>(null)
   const press = useRef<{ t: number; timer: number; hug: boolean; x: number; y: number } | null>(null)
   const timers = useRef<number[]>([])
-  const b = BUBBLE_COLORS[theme]
   const reduce = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+  const grow = 0.8 + 0.2 * Math.max(0, Math.min(1, (scale - 0.34) / 0.66))
 
-  // skin family
-  const s0 = shade(skin, 0.28), s1 = skin, knee = shade(skin, 0.06), foot = shade(skin, -0.02), arm = shade(skin, -0.03), hand = shade(skin, 0.12), ear = shade(skin, -0.02)
-
-  // pause the SVG loops whenever the bubble is off screen (they repaint every frame)
+  // pause the loops whenever the womb is off screen
   useEffect(() => {
     const el = stage.current
     if (!el || typeof IntersectionObserver === 'undefined') return
@@ -66,32 +75,6 @@ export default function WombBaby({
     io.observe(el)
     return () => io.disconnect()
   }, [])
-
-  // eyes follow the pointer: at most one update per frame, and the bubble's position is
-  // re-measured only after a scroll/resize instead of on every mouse move
-  useEffect(() => {
-    if (!followEyes || reduce) return
-    let rect: DOMRect | null = null, x = 0, y = 0, queued = false
-    const stale = () => { rect = null }
-    const apply = () => {
-      queued = false
-      const el = stage.current, p = pupils.current
-      if (!el || !p || el.hasAttribute('data-off')) return
-      rect = rect ?? el.getBoundingClientRect()
-      const dx = x - (rect.left + rect.width / 2), dy = y - (rect.top + rect.height * 0.42)
-      const d = Math.hypot(dx, dy) || 1, m = Math.min(4.5, d / 60)
-      p.style.transform = `translate(${(dx / d * m).toFixed(2)}px,${(dy / d * m).toFixed(2)}px)`
-    }
-    const onMove = (e: PointerEvent) => { x = e.clientX; y = e.clientY; if (!queued) { queued = true; requestAnimationFrame(apply) } }
-    window.addEventListener('pointermove', onMove, { passive: true })
-    window.addEventListener('scroll', stale, { passive: true })
-    window.addEventListener('resize', stale, { passive: true })
-    return () => {
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('scroll', stale)
-      window.removeEventListener('resize', stale)
-    }
-  }, [followEyes, reduce])
 
   useEffect(() => () => timers.current.forEach(clearTimeout), [])
 
@@ -109,11 +92,10 @@ export default function WombBaby({
     const r = stage.current.getBoundingClientRect()
     const x = cx != null ? cx - r.left : r.width / 2
     const y = cy != null ? cy - r.top : r.height * 0.45
-    const colors = ['#E58F86', '#C9837C', '#F1A9A0', '#E7C67A', '#A7B89C']
     const now = Date.now()
     const made = Array.from({ length: n }, (_, i) => ({
       id: now + i, x: x + (Math.random() * 30 - 15), y, dx: Math.random() * 90 - 45, rot: Math.random() * 50 - 25,
-      s: 14 + Math.random() * 16, c: colors[i % colors.length], d: i * 70,
+      s: 14 + Math.random() * 16, c: WOMB_PINKS[i % WOMB_PINKS.length], d: i * 70,
     }))
     setHearts(h => [...h, ...made])
     timers.current.push(window.setTimeout(() => setHearts(h => h.filter(x => !made.includes(x))), 2000))
@@ -123,8 +105,14 @@ export default function WombBaby({
   function local(e: { clientX: number; clientY: number }) {
     const r = stage.current!.getBoundingClientRect()
     const x = e.clientX - r.left, y = e.clientY - r.top
-    const cx = r.width / 2, cy = r.height * (215 / 430), rad = r.width * (176 / 400)
-    return { x, y, inside: Math.hypot(x - cx, y - cy) < rad }
+    // is the pointer inside the sac? map into image pixels and test the rotated ellipse
+    const a = art.current?.getBoundingClientRect()
+    if (!a) return { x, y, inside: false }
+    const k = W / a.width
+    const dx = (e.clientX - a.left) * k - SAC.cx, dy = (e.clientY - a.top) * k - SAC.cy
+    const t = SAC.deg * Math.PI / 180
+    const u = dx * Math.cos(t) + dy * Math.sin(t), v = -dx * Math.sin(t) + dy * Math.cos(t)
+    return { x, y, inside: (u / (SAC.a / 2)) ** 2 + (v / (SAC.b / 2)) ** 2 < 1 }
   }
   function moveLip(x: number, y: number) {
     const el = lipRef.current
@@ -196,106 +184,38 @@ export default function WombBaby({
       }}
       role={interactive || love ? 'button' : 'img'}
       tabIndex={interactive || love ? 0 : undefined}
-      aria-label={label ?? (love ? 'Your baby. Press Enter to send a kiss, H to send a hug.' : 'A little baby floating in a bubble')}
+      aria-label={label ?? (love ? 'Your baby. Press Enter to send a kiss, H to send a hug.' : 'A little baby, curled up and smiling inside a pink womb')}
       style={{ cursor: love ? (inside ? 'none' : 'default') : interactive ? 'pointer' : 'default', touchAction: love ? 'manipulation' : undefined }}
     >
-      <svg className="womb" viewBox="0 0 400 430" aria-hidden="true">
-        <defs>
-          <radialGradient id={`${uid}w`} cx="45%" cy="40%" r="65%">
-            <stop offset="0" stopColor={b.stops[0]} /><stop offset=".55" stopColor={b.stops[1]} /><stop offset="1" stopColor={b.stops[2]} />
-          </radialGradient>
-          <radialGradient id={`${uid}s`} cx="40%" cy="35%" r="75%">
-            <stop offset="0" stopColor={s0} /><stop offset="1" stopColor={s1} />
-          </radialGradient>
-          <radialGradient id={`${uid}g`} cx="50%" cy="50%" r="50%">
-            <stop offset="0" stopColor="#fff" stopOpacity=".7" /><stop offset="1" stopColor="#fff" stopOpacity="0" />
-          </radialGradient>
-          <clipPath id={`${uid}c`}><circle cx="200" cy="215" r="176" /></clipPath>
-        </defs>
+      {decor && <div className="wb-decor" aria-hidden="true">
+        {DECOR.map((d, i) => d.kind === 'heart'
+          ? <svg key={i} viewBox="0 0 24 24" className="wb-heart" style={{ left: `${d.x}%`, top: `${d.y}%`, width: d.s, height: d.s, animationDelay: `${d.d}s` }}><path d={HEART_PATH} fill={d.c} /></svg>
+          : d.kind === 'spark'
+            ? <svg key={i} viewBox="0 0 20 20" className="wb-spark" style={{ left: `${d.x}%`, top: `${d.y}%`, width: d.s, height: d.s, animationDelay: `${d.d}s` }}><path d="M10 0 C11 7 13 9 20 10 C13 11 11 13 10 20 C9 13 7 11 0 10 C7 9 9 7 10 0Z" fill={d.c} /></svg>
+            : <span key={i} className="wb-dot" style={{ left: `${d.x}%`, top: `${d.y}%`, width: d.s, height: d.s, background: d.c, animationDelay: `${d.d}s` }} />)}
+      </div>}
 
-        {decor && <>
-          <circle className="ring" cx="200" cy="215" r="182" fill="none" stroke={b.ring} strokeWidth="3" />
-          <circle className="ring r2" cx="200" cy="215" r="182" fill="none" stroke={b.ring} strokeWidth="3" />
-          <g fill="#E8B4A6">
-            <path className="sparkle" d="M30 70l4 10 10 4-10 4-4 10-4-10-10-4 10-4z" />
-            <path className="sparkle" style={{ animationDelay: '-1s' }} d="M366 96l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#E7C67A" />
-            <path className="sparkle" style={{ animationDelay: '-2s' }} d="M372 340l3 8 8 3-8 3-3 8-3-8-8-3 8-3z" />
-            <path className="sparkle" style={{ animationDelay: '-.5s' }} d="M22 330l3 6 6 3-6 3-3 6-3-6-6-3 6-3z" fill="#A7B89C" />
-          </g>
-        </>}
+      <div className="wb-art" ref={art} style={{ ['--grow' as string]: grow.toFixed(3) }} aria-hidden="true">
+        {decor && <span className="wb-halo" style={{ left: pct(SAC.cx, W), top: pct(SAC.cy, H), width: pct(SAC.a, W), height: pct(SAC.b, H), ['--deg' as string]: `${SAC.deg}deg` }} />}
+        <div className="wb-sac">
+          <img src={sacUrl} alt="" width={W} height={H} draggable={false} decoding="async" />
+          {/* liquid: slow drifting light and tiny rising bubbles, clipped to the sac */}
+          <div className="wb-fluid" style={{ left: pct(SAC.cx, W), top: pct(SAC.cy, H), width: pct(SAC.a * 0.9, W), height: pct(SAC.b * 0.9, H), ['--deg' as string]: `${SAC.deg}deg` }}>
+            <div className="wb-fluid-in">
+              <span className="wb-glint" />
+              {[[22, 72, 5, 7, 0], [70, 80, 4, 9, -3], [58, 86, 3, 6, -1.5], [36, 88, 3.5, 8, -5], [80, 64, 2.5, 7.5, -2], [16, 60, 2.5, 6.5, -4]].map(([x, y, r, d, dl], i) => (
+                <span key={i} className="wb-bub" style={{ left: `${x}%`, top: `${y}%`, width: r * 2, height: r * 2, animationDuration: `${d}s`, animationDelay: `${dl}s` }} />
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="wb-baby" style={{ left: pct(BABY.x, W), top: pct(BABY.y, H), width: pct(BABY.w, W), height: pct(BABY.h, H) }}>
+          <div className="wb-kick">
+            <img src={babyUrl} alt="" width={BABY.w} height={BABY.h} draggable={false} decoding="async" />
+          </div>
+        </div>
+      </div>
 
-        <g className="womb-body">
-          <circle cx="200" cy="215" r="176" fill={`url(#${uid}w)`} />
-          <circle cx="200" cy="215" r="170" fill="none" stroke="#fff" strokeOpacity=".55" strokeWidth="2" />
-          <g clipPath={`url(#${uid}c)`}>
-            {[[110, 360, 5, 7, 0], [300, 370, 4, 9, -3], [250, 380, 3, 6, -1.5], [150, 385, 3.5, 8, -5], [330, 330, 2.5, 7.5, -2], [80, 300, 2.5, 6.5, -4]].map(([cx, cy, r, d, dl], i) => (
-              <circle key={i} className="bubble-p" cx={cx} cy={cy} r={r} fill="#fff" style={{ animationDuration: `${d}s`, animationDelay: `${dl}s` }} />
-            ))}
-          </g>
-          <path d="M80 140 A140 140 0 0 1 170 62" fill="none" stroke="#fff" strokeWidth="10" strokeLinecap="round" opacity=".55" />
-          <circle cx="70" cy="168" r="6" fill="#fff" opacity=".55" />
-        </g>
-
-        <g className="baby" style={{ transform: `scale(${scale.toFixed(3)})` }}>
-          <g className="float">
-            <ellipse cx="200" cy="215" rx="120" ry="120" fill={`url(#${uid}g)`} />
-            <g className="foot-l" >
-              <ellipse cx="146" cy="318" rx="24" ry="15" fill={foot} />
-              <circle cx="128" cy="312" r="5" fill={foot} />
-            </g>
-            <ellipse cx="200" cy="282" rx="74" ry="56" fill={`url(#${uid}s)`} />
-            <path className="chest-heart" d={HEART_PATH} transform="translate(190 254) scale(.83)" fill="#E58F86" />
-            <circle cx="160" cy="292" r="31" fill={knee} />
-            <circle cx="240" cy="292" r="31" fill={knee} />
-            <g className="foot-r" >
-              <ellipse cx="256" cy="322" rx="25" ry="15" fill={foot} />
-              <circle cx="276" cy="316" r="5" fill={foot} /><circle cx="279" cy="324" r="4" fill={foot} />
-            </g>
-            <path d="M138 262 Q150 300 186 290" fill="none" stroke={arm} strokeWidth="20" strokeLinecap="round" />
-            <circle cx="188" cy="288" r="12" fill={hand} />
-            <g className="wave-arm">
-              <path d="M262 262 Q284 236 270 212" fill="none" stroke={arm} strokeWidth="20" strokeLinecap="round" />
-              <circle cx="268" cy="206" r="13" fill={hand} />
-              <circle cx="262" cy="196" r="4.5" fill={hand} />
-            </g>
-            {extra === 'bunny' && <g>
-              <ellipse cx="160" cy="82" rx="17" ry="42" transform="rotate(-14 160 82)" fill="#FFF7F2" stroke="#F1D3C6" strokeWidth="3" />
-              <ellipse cx="160" cy="86" rx="8" ry="28" transform="rotate(-14 160 86)" fill="#F7C3BA" />
-              <ellipse cx="240" cy="82" rx="17" ry="42" transform="rotate(14 240 82)" fill="#FFF7F2" stroke="#F1D3C6" strokeWidth="3" />
-              <ellipse cx="240" cy="86" rx="8" ry="28" transform="rotate(14 240 86)" fill="#F7C3BA" />
-            </g>}
-            <circle cx="124" cy="182" r="15" fill={ear} />
-            <circle cx="276" cy="182" r="15" fill={ear} />
-            <circle cx="200" cy="175" r="82" fill={`url(#${uid}s)`} />
-            {extra === 'curl' && <path d="M196 95 C 186 80, 210 72, 214 86 C 217 97, 202 100, 200 92" fill="none" stroke="#C98B7A" strokeWidth="5" strokeLinecap="round" />}
-            {extra === 'sprout' && <g>
-              <path d="M200 95 C 200 84, 201 76, 203 68" fill="none" stroke="#71866A" strokeWidth="5" strokeLinecap="round" />
-              <path d="M203 70 C 190 52, 168 58, 170 70 C 180 76, 196 74, 203 70Z" fill="#A7B89C" />
-              <path d="M203 70 C 214 50, 238 54, 236 66 C 226 74, 210 74, 203 70Z" fill="#BFD0B2" />
-            </g>}
-            {extra === 'beanie' && <g>
-              <path d="M120 158 C 118 104, 160 90, 200 90 C 240 90, 282 104, 280 158 C 240 140, 160 140, 120 158Z" fill="#E9A99D" />
-              <path d="M118 160 C 160 138, 240 138, 282 160 L 280 172 C 240 152, 160 152, 120 172Z" fill="#D98F84" />
-              <circle cx="200" cy="86" r="16" fill="#FFF3EE" />
-            </g>}
-            {extra === 'bunny' && <path d="M126 140 C 150 100, 250 100, 274 140" fill="none" stroke="#F1D3C6" strokeWidth="7" strokeLinecap="round" />}
-            {extra === 'star' && <path d="M256 104 l7 15 16 2 -12 11 3 16 -14 -8 -14 8 3 -16 -12 -11 16 -2z" fill="#F2CF6B" stroke="#E3B648" strokeWidth="2" strokeLinejoin="round" />}
-            <ellipse className="cheek" cx="150" cy="205" rx="17" ry="11" fill="#F29A8E" opacity=".5" />
-            <ellipse className="cheek" cx="250" cy="205" rx="17" ry="11" fill="#F29A8E" opacity=".5" />
-            <g className="open-eyes">
-              <g className="pupils" ref={pupils}>
-                <g className="eye"><ellipse cx="170" cy="180" rx="9.5" ry="12" fill="#3A2B2A" /><circle cx="173.5" cy="175" r="3.6" fill="#fff" /><circle cx="167" cy="186" r="1.6" fill="#fff" /></g>
-                <g className="eye"><ellipse cx="230" cy="180" rx="9.5" ry="12" fill="#3A2B2A" /><circle cx="233.5" cy="175" r="3.6" fill="#fff" /><circle cx="227" cy="186" r="1.6" fill="#fff" /></g>
-              </g>
-            </g>
-            <g className="happy" fill="none" stroke="#3A2B2A" strokeWidth="4.5" strokeLinecap="round">
-              <path d="M160 184 Q170 170 180 184" /><path d="M220 184 Q230 170 240 184" />
-            </g>
-            <ellipse cx="200" cy="200" rx="4" ry="3" fill={shade(skin, -0.12)} />
-            <path d="M190 213 Q200 223 210 213" fill="none" stroke="#A85F5A" strokeWidth="3.5" strokeLinecap="round" />
-          </g>
-        </g>
-      </svg>
       <div className={`say ${say ? 'show' : ''}`} aria-live="polite">{say ?? ' '}</div>
       {hearts.map(h => (
         <svg key={h.id} viewBox="0 0 24 24" className="heart-pop" aria-hidden="true"

@@ -94,11 +94,11 @@ function WeightChart({ entries, hide, due }: { entries: WeightEntry[]; hide: boo
   const label = (d: string) => { const wk = weekOn(d, due); return wk != null ? `wk ${wk}` : dayOf(d) }
   return (
     <div ref={box} className="wchart-box"><svg className="wchart" width={W} height={H} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={hide ? 'Your weight trend, numbers hidden' : `Your weight from ${entries[0].kg} to ${entries[entries.length - 1].kg} kg`}>
-      <defs><linearGradient id="wfill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#C9837C" stopOpacity=".22" /><stop offset="1" stopColor="#C9837C" stopOpacity="0" /></linearGradient></defs>
-      {ticks.map(k => <g key={k}><line x1={P.l} x2={W - P.r} y1={y(k)} y2={y(k)} stroke="#EBDDD3" />{!hide && <text x={P.l - 8} y={y(k) + 4} textAnchor="end" className="wtick">{k.toFixed(0)}</text>}</g>)}
+      <defs><linearGradient id="wfill" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#F0507F" stopOpacity=".22" /><stop offset="1" stopColor="#F0507F" stopOpacity="0" /></linearGradient></defs>
+      {ticks.map(k => <g key={k}><line x1={P.l} x2={W - P.r} y1={y(k)} y2={y(k)} stroke="#F8D7E1" />{!hide && <text x={P.l - 8} y={y(k) + 4} textAnchor="end" className="wtick">{k.toFixed(0)}</text>}</g>)}
       {pts.length > 1 && <path d={area} fill="url(#wfill)" />}
-      {pts.length > 1 && <path d={path} fill="none" stroke="#C9837C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
-      {pts.map(([px, py], i) => <circle key={i} cx={px} cy={py} r={i === pts.length - 1 ? 6 : 4.5} fill={i === pts.length - 1 ? '#C9837C' : '#fff'} stroke="#C9837C" strokeWidth="2.5" />)}
+      {pts.length > 1 && <path d={path} fill="none" stroke="#F0507F" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+      {pts.map(([px, py], i) => <circle key={i} cx={px} cy={py} r={i === pts.length - 1 ? 6 : 4.5} fill={i === pts.length - 1 ? '#F0507F' : '#fff'} stroke="#F0507F" strokeWidth="2.5" />)}
       <text x={pts[0][0]} y={H - 8} className="wtick" textAnchor="start">{label(entries[0].date)}</text>
       {entries.length > 1 && <text x={pts[pts.length - 1][0]} y={H - 8} className="wtick" textAnchor="end">{label(entries[entries.length - 1].date)}</text>}
     </svg></div>

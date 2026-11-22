@@ -186,7 +186,7 @@ export default function CrawlingBaby() {
   function hearts() {
     const el = box.current
     if (!el || reduce) return
-    const colors = ['#E58F86', '#C9837C', '#F1A9A0', '#E7C67A', '#A7B89C']
+    const colors = ['#FE6490', '#F0507F', '#FE96B0', '#E7C67A', '#F59E83']
     for (let i = 0; i < 5; i++) {
       const h = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
       h.setAttribute('viewBox', '0 0 24 24'); h.setAttribute('class', 'heart-pop'); h.setAttribute('aria-hidden', 'true')
@@ -203,7 +203,7 @@ export default function CrawlingBaby() {
   if (napping === null) return null
   if (napping) {
     return <button type="button" className="baby-wake" onClick={() => nap(false)}>
-      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="#C9837C" /></svg>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" fill="#F0507F" /></svg>
       Wake the baby
     </button>
   }

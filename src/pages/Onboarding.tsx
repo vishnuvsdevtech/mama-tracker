@@ -3,12 +3,12 @@ import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-
 import { AnimatePresence, motion } from 'motion/react'
 import { useProfile } from '../lib/ProfileContext'
 import {
-  BUBBLES, CALL_ME, EXTRAS, HAIRS, HAIR_COLORS, OUTFITS, SCARF_COLORS, SKINS,
+  CALL_ME, HAIRS, HAIR_COLORS, OUTFITS, SCARF_COLORS, SKINS,
   ageText, fmtDate, todayISO, whereAreWe, type Profile, type Stage,
 } from '../lib/profile'
 import { MONTHS, sizeFor } from '../lib/weeks'
 import MamaAvatar from '../components/MamaAvatar'
-import WombBaby, { BUBBLE_COLORS } from '../components/WombBaby'
+import WombBaby from '../components/WombBaby'
 import Stepper from '../components/Stepper'
 import Swatches from '../components/Swatches'
 import Brand from '../components/Brand'
@@ -68,7 +68,7 @@ function You({ d, up }: StepProps) {
       </div>
 
       <div className="speech-row">
-        <WombBaby decor={false} scale={0.9} className="tiny-baby" theme={d.babyLook.bubble} extra={d.babyLook.extra} skin={d.babyLook.skin} />
+        <WombBaby decor={false} scale={0.9} className="tiny-baby" />
         <motion.div key={d.callMe} className="speech" initial={{ scale: .6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 400, damping: 18 }}>
           hi {d.callMe.toLowerCase()}!
         </motion.div>
@@ -137,7 +137,7 @@ function When({ d, up }: StepProps) {
         {([
           ['month', 'I know my month', 'Pick the month you\'re in', <MoonIcon key="m" />],
           ['due', 'I know my due date', 'The most exact option', <CalIcon key="c" />],
-          ['born', 'Baby is here!', 'Start from the birth date', <Heart key="h" size={30} color="#E58F86" />],
+          ['born', 'Baby is here!', 'Start from the birth date', <Heart key="h" size={30} color="#FE6490" />],
         ] as const).map(([k, t, s, icon]) => (
           <button key={k} type="button" role="radio" aria-checked={kind === k} className={`choice ${kind === k ? 'on' : ''}`} onClick={() => choose(k)}>
             <span className="choice-ico">{icon}</span>
@@ -184,7 +184,7 @@ function When({ d, up }: StepProps) {
 
       {w && (
         <motion.div className="result" key={JSON.stringify(d.stage)} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
-          <Heart size={18} color="#C9837C" />
+          <Heart size={18} color="#F0507F" />
           {w.pregnant
             ? <span>That's about <b>week {w.week}</b> — baby is around the size of <em>{sizeFor(w.week)[0]}</em>.{w.estimate && ' We\'ll keep this as an estimate until you add a due date.'}</span>
             : <span>Your little one is <b>{ageText(w.ageDays!)}</b>. Congratulations, {d.callMe.toLowerCase()}!</span>}
@@ -195,17 +195,15 @@ function When({ d, up }: StepProps) {
 }
 
 function Baby({ d, up }: StepProps) {
-  const B = d.babyLook
-  const set = (p: Partial<typeof B>) => up({ babyLook: { ...B, ...p } })
   const born = d.stage?.kind === 'born'
   const w = stageValid(d.stage) ? whereAreWe(d.stage) : null
   return (
     <div className="look">
       <div className="look-preview">
-        <WombBaby interactive followEyes decor theme={B.bubble} extra={B.extra} skin={B.skin}
+        <WombBaby interactive decor
           scale={born ? 0.95 : Math.max(0.6, weekScale(w?.week ?? 20))}
           lines={[`hi ${d.callMe.toLowerCase()}!`, '*tiny kick*', 'love you already']}
-          hint={<><Heart size={13} color="#C9837C" />Tap {d.babyName ? d.babyName : 'me'}</>}
+          hint={<><Heart size={13} color="#F0507F" />Tap {d.babyName ? d.babyName : 'me'}</>}
           className="baby-preview" />
       </div>
       <div>
@@ -217,19 +215,6 @@ function Baby({ d, up }: StepProps) {
         </label>
         <p className="ob-help">{born ? 'You can change it any time.' : 'Still deciding? A nickname is perfect — you can change it any time.'}</p>
 
-        <h2 className="ob-q">{born ? 'Their little world' : 'Their cosy bubble'}</h2>
-        <Swatches label="Bubble colour" colors={BUBBLES} value={B.bubble} onChange={c => set({ bubble: c as typeof B.bubble })} display={c => BUBBLE_COLORS[c as typeof B.bubble].swatch} />
-        <h2 className="ob-q">A little something</h2>
-        <div className="tiles six" role="radiogroup" aria-label="Accessory">
-          {EXTRAS.map(x => (
-            <button key={x.id} type="button" role="radio" aria-checked={B.extra === x.id} className={`tile ${B.extra === x.id ? 'on' : ''}`} onClick={() => set({ extra: x.id })}>
-              <WombBaby decor={false} scale={1} theme={B.bubble} extra={x.id} skin={B.skin} className="thumb-baby" />
-              <span>{x.label}</span>
-            </button>
-          ))}
-        </div>
-        <h2 className="ob-q">Skin</h2>
-        <Swatches label="Baby skin tone" colors={SKINS} value={B.skin} onChange={skin => set({ skin })} />
       </div>
     </div>
   )
@@ -286,7 +271,7 @@ function Ready({ d }: StepProps) {
           <MamaAvatar look={d.mamaLook} size={170} className="duo-mama" />
         </motion.div>
         <motion.div initial={{ x: -40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 200, damping: 16, delay: .15 }}>
-          <WombBaby className="duo-baby" decor={false} interactive theme={d.babyLook.bubble} extra={d.babyLook.extra} skin={d.babyLook.skin}
+          <WombBaby className="duo-baby" decor={false} interactive
             scale={w?.pregnant ? Math.max(0.6, weekScale(w.week)) : 0.95} lines={[`hi ${d.callMe.toLowerCase()}!`, 'we did it!']} />
         </motion.div>
         <FloatingHearts />
@@ -403,14 +388,14 @@ function FloatingHearts() {
   return (
     <div className="float-hearts" aria-hidden="true">
       {[0, 1, 2, 3, 4, 5].map(k => (
-        <span key={k} style={{ left: `${12 + k * 15}%`, animationDelay: `${k * .55}s` }}><Heart size={12 + (k % 3) * 6} color={['#E58F86', '#E7C67A', '#C9837C'][k % 3]} /></span>
+        <span key={k} style={{ left: `${12 + k * 15}%`, animationDelay: `${k * .55}s` }}><Heart size={12 + (k % 3) * 6} color={['#FE6490', '#E7C67A', '#F0507F'][k % 3]} /></span>
       ))}
     </div>
   )
 }
 function MoonIcon() {
-  return <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="11" fill="#F6DAD2" /><path d="M15 4a11 11 0 0 1 0 22a7 11 0 0 0 0-22z" fill="#C9837C" /></svg>
+  return <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><circle cx="15" cy="15" r="11" fill="#FFD9E3" /><path d="M15 4a11 11 0 0 1 0 22a7 11 0 0 0 0-22z" fill="#F0507F" /></svg>
 }
 function CalIcon() {
-  return <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="4" y="6" width="22" height="20" rx="5" fill="#E5EDDF" /><rect x="4" y="6" width="22" height="7" rx="3" fill="#A7B89C" /><circle cx="15" cy="19" r="3.4" fill="#71866A" /></svg>
+  return <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect x="4" y="6" width="22" height="20" rx="5" fill="#FFE5DC" /><rect x="4" y="6" width="22" height="7" rx="3" fill="#F59E83" /><circle cx="15" cy="19" r="3.4" fill="#C8506A" /></svg>
 }

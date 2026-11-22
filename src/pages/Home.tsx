@@ -127,8 +127,8 @@ export default function Home() {
               <div className="stat-row">
                 <div className="ring-stat">
                   <svg viewBox="0 0 120 120" aria-hidden="true">
-                    <circle cx="60" cy="60" r="50" fill="none" stroke="#F6DAD2" strokeWidth="12" />
-                    <motion.circle cx="60" cy="60" r="50" fill="none" stroke="#C9837C" strokeWidth="12" strokeLinecap="round"
+                    <circle cx="60" cy="60" r="50" fill="none" stroke="#FFD9E3" strokeWidth="12" />
+                    <motion.circle cx="60" cy="60" r="50" fill="none" stroke="#F0507F" strokeWidth="12" strokeLinecap="round"
                       transform="rotate(-90 60 60)" strokeDasharray={314.16}
                       initial={{ strokeDashoffset: 314.16 }} animate={{ strokeDashoffset: 314.16 * (1 - pct / 100) }} transition={{ duration: 1.6, ease: 'easeOut', delay: .3 }} />
                   </svg>
@@ -141,7 +141,7 @@ export default function Home() {
             )}
           </div>
           <div className="love-col">
-            <WombBaby ref={bubble} followEyes theme={profile.babyLook.bubble} extra={profile.babyLook.extra} skin={profile.babyLook.skin}
+            <WombBaby ref={bubble}
               scale={w?.pregnant ? weekScale(w.week) : 0.95}
               love={{ onKiss, onHug }}
               label={`${baby}. Tap to send a kiss, press and hold to hug.`} />
@@ -155,7 +155,7 @@ export default function Home() {
                 <span className="love-n"><b>{love?.hugs ?? 0}</b><small>{love?.hugs === 1 ? 'hug' : 'hugs'}{love?.todayHugs ? ` · ${love.todayHugs} today` : ''}</small></span>
               </button>
             </div>
-            <p className="love-hint">Tap the bubble to kiss {baby} · press and hold to hug</p>
+            <p className="love-hint">Tap {baby} for a kiss · press and hold for a hug</p>
           </div>
         </motion.section>
 

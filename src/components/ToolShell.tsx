@@ -27,7 +27,7 @@ export default function ToolShell({ eyebrow, title, intro, children }: { eyebrow
 export function SafetyNote({ children }: { children: ReactNode }) {
   return (
     <div className="safety" role="note">
-      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FCE7E1" /><path d="M12 7v6" stroke="#A85F5A" strokeWidth="2.4" strokeLinecap="round" /><circle cx="12" cy="16.6" r="1.4" fill="#A85F5A" /></svg>
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFE6EC" /><path d="M12 7v6" stroke="#C8295E" strokeWidth="2.4" strokeLinecap="round" /><circle cx="12" cy="16.6" r="1.4" fill="#C8295E" /></svg>
       <p>{children}</p>
     </div>
   )
