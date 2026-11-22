@@ -101,8 +101,14 @@ export default function CrawlingBaby() {
     const onResize = () => { size.vw = window.innerWidth; if (anim && anim.playState !== 'finished') startCrossing(xNow()) }
     window.addEventListener('resize', onResize, { passive: true })
 
-    // the two reaction clips are only needed later: let the crawl load first
-    const warm = window.setTimeout(() => { for (const v of [smile, tickle]) if (v.paused && v.readyState < 2) { v.preload = 'auto'; v.load() } }, 2500)
+    // The reaction clips are only needed once she has been here a while and moved
+    // something. Fetching 350 kB of video for a visitor who bounces in two seconds
+    // is the kind of thing that costs a phone user real money, so warm them on the
+    // first pointer move, or after a long idle — not on a timer that fires anyway.
+    const warmNow = () => { for (const v of [smile, tickle]) if (v.paused && v.readyState < 2) { v.preload = 'auto'; v.load() } }
+    const warm = window.setTimeout(warmNow, 12000)
+    const warmOnMove = () => { clearTimeout(warm); warmNow() }
+    window.addEventListener('pointermove', warmOnMove, { once: true, passive: true })
 
     const backToCrawl = (clip: 'smile' | 'tickle') => {
       if (st.current.clip !== clip) return
@@ -175,7 +181,7 @@ export default function CrawlingBaby() {
     document.addEventListener('resume' as never, onWake as EventListener)
 
     return () => {
-      clearTimeout(warm); clearTimeout(offTimer); clearInterval(look); cancelAnimationFrame(cutting)
+      clearTimeout(warm); clearTimeout(offTimer); window.removeEventListener('pointermove', warmOnMove); clearInterval(look); cancelAnimationFrame(cutting)
       ro.disconnect(); window.removeEventListener('resize', onResize)
       anim?.cancel(); s.move = undefined
       smile.removeEventListener('ended', onSmileEnd)

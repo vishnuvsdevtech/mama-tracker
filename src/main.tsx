@@ -19,6 +19,15 @@ const Router = ({ children }: { children: React.ReactNode }) =>
 
 installScrollState()
 
+/* Offline, and installable. A page opened every morning should not need the
+   network to say what it already knows. Production only: a service worker in dev
+   serves stale modules and makes every change confusing. */
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register(import.meta.env.BASE_URL + 'sw.js').catch(() => {})
+  })
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <MotionConfig reducedMotion="user">

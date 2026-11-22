@@ -1,0 +1,14 @@
+{
+  "name": "Nine months, organised",
+  "short_name": "Nine months",
+  "description": "A private pregnancy companion: weeks, appointments, documents and the four tools a mama actually uses. Nothing leaves the device.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FFF3F6",
+  "theme_color": "#FFF3F6",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
