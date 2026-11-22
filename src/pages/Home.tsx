@@ -169,7 +169,6 @@ export default function Home() {
           </section>
         )}
 
-        {w?.pregnant && <WeekGuide week={w.week} />}
 
         <section className="tools">
           <h2 className="tools-h">Your space</h2>
@@ -193,6 +192,9 @@ export default function Home() {
             })}
           </div>
         </section>
+
+        {w?.pregnant && <WeekGuide week={w.week} />}
+
         <p className="disclaim center">Built only on published guidelines and research — <Link to="/sources" className="link">see our sources</Link>. General information, not medical advice: your doctor knows you two best.</p>
         <div className="baby-space" aria-hidden="true" />
       </main>

@@ -1,3 +1,4 @@
+import type { IconName } from '../components/AdviceIcons'
 /*
  * Week-by-week guidance, built only from published clinical guidelines and peer-reviewed research.
  * Every item lists the sources it rests on; every source has a public link.
@@ -97,18 +98,19 @@ export const SOURCES: Source[] = [
 export const SOURCE: Record<string, Source> = Object.fromEntries(SOURCES.map(s => [s.id, s]))
 
 export type Kind = 'check' | 'supplement' | 'vaccine' | 'food' | 'body' | 'mind' | 'watch'
-export const KINDS: Record<Kind, { label: string; icon: string }> = {
-  check: { label: 'Check-ups, tests & scans', icon: '🩺' },
-  supplement: { label: 'Supplements', icon: '💊' },
-  vaccine: { label: 'Vaccines', icon: '💉' },
-  food: { label: 'Food & drink', icon: '🥗' },
-  body: { label: 'Moving & resting', icon: '🧘' },
-  mind: { label: 'How you feel', icon: '💗' },
-  watch: { label: 'Call your doctor straight away if…', icon: '🚨' },
+export const KINDS: Record<Kind, { label: string; icon: IconName }> = {
+  check: { label: 'Check-ups, tests & scans', icon: 'stethoscope' },
+  supplement: { label: 'Supplements', icon: 'capsule' },
+  vaccine: { label: 'Vaccines', icon: 'syringe' },
+  food: { label: 'Food & drink', icon: 'apple' },
+  body: { label: 'Moving & resting', icon: 'shoe' },
+  mind: { label: 'How you feel', icon: 'mind' },
+  watch: { label: 'Call your doctor straight away if…', icon: 'phone' },
 }
 
 export interface Advice {
   id: string
+  icon: IconName
   from: number
   to: number
   kind: Kind
@@ -126,115 +128,115 @@ const WHO_CONTACTS = [20, 26, 30, 34, 36, 38, 40]
 
 export const ADVICE: Advice[] = [
   /* ---------- first weeks ---------- */
-  { id: 'folic', from: 4, to: 12, kind: 'supplement', title: 'Folic acid every day until 12 weeks',
+  { id: 'folic', icon: 'capsule', from: 4, to: 12, kind: 'supplement', title: 'Folic acid every day until 12 weeks',
     text: '400 micrograms a day lowers the chance of neural tube defects such as spina bifida. Some women are prescribed a higher dose — your doctor will say if that\'s you.',
     src: ['nhs-vit', 'who-anc', 'r-folic'] },
-  { id: 'booking', from: 4, to: 12, kind: 'check', due: true, title: 'Book your first antenatal visit',
+  { id: 'booking', icon: 'calendar', from: 4, to: 12, kind: 'check', due: true, title: 'Book your first antenatal visit',
     text: 'WHO advises the first contact before 12 weeks; NICE suggests booking by 10 weeks. First bloods usually include blood group and Rh type, haemoglobin, and tests for HIV, syphilis and hepatitis B.',
     src: ['who-anc', 'nice-anc', 'nice-sched'] },
-  { id: 'gdm1', from: 4, to: 16, kind: 'check', india: true, title: 'Sugar test at your first visit',
+  { id: 'gdm1', icon: 'glucose', from: 4, to: 16, kind: 'check', india: true, title: 'Sugar test at your first visit',
     text: 'India\'s guideline: a 75 g glucose test (OGTT) at the first antenatal visit — no fasting needed, one blood check 2 hours later. If normal, it\'s repeated at 24–28 weeks.',
     src: ['in-gdm', 'r-hapo'] },
-  { id: 'nausea', from: 5, to: 14, kind: 'body', title: 'Nausea is common early on',
+  { id: 'nausea', icon: 'tea', from: 5, to: 14, kind: 'body', title: 'Nausea is common early on',
     text: 'Small, frequent meals and plenty of fluids can help. If you can\'t keep food or fluids down, contact your doctor — it can be treated.',
     src: ['nice-anc'] },
-  { id: 'nt', from: 11, to: 14, kind: 'check', due: true, title: 'First-trimester (dating / NT) scan',
+  { id: 'nt', icon: 'scan', from: 11, to: 14, kind: 'check', due: true, title: 'First-trimester (dating / NT) scan',
     text: 'Usually done between about 11 and 14 weeks. It confirms your dates and the number of babies, and can be combined with a blood test to screen for Down\'s, Edwards\' and Patau\'s syndromes. Screening is your choice.',
     src: ['nhs-screen', 'nice-anc', 'r-us'] },
-  { id: 'aspirin', from: 11, to: 16, kind: 'check', title: 'Ask about your pre-eclampsia risk',
+  { id: 'aspirin', icon: 'stethoscope', from: 11, to: 16, kind: 'check', title: 'Ask about your pre-eclampsia risk',
     text: 'If you have risk factors (for example high blood pressure, diabetes or pre-eclampsia before), doctors may prescribe low-dose aspirin from about 12 weeks. A large trial showed it lowers preterm pre-eclampsia. Only take it if prescribed.',
     src: ['r-aspirin', 'nhs-pe'] },
 
   /* ---------- every week ---------- */
-  { id: 'nosmoke', from: 4, to: 42, kind: 'food', title: 'No alcohol, no smoking',
+  { id: 'nosmoke', icon: 'noAlcohol', from: 4, to: 42, kind: 'food', title: 'No alcohol, no smoking',
     text: 'There is no known safe amount of alcohol in pregnancy, and stopping smoking at any point helps your baby. Ask for free support to quit.',
     src: ['nhs-health', 'nhs-food', 'who-anc'] },
-  { id: 'caffeine', from: 4, to: 42, kind: 'food', title: 'Keep caffeine under 200 mg a day',
+  { id: 'caffeine', icon: 'cup', from: 4, to: 42, kind: 'food', title: 'Keep caffeine under 200 mg a day',
     text: 'That\'s about two mugs of instant coffee — tea, cola, energy drinks and chocolate count too. Higher intakes are linked with lower birth weight.',
     src: ['nhs-food', 'r-caffeine', 'who-anc'] },
-  { id: 'foodsafe', from: 4, to: 42, kind: 'food', title: 'Foods to avoid',
+  { id: 'foodsafe', icon: 'avoid', from: 4, to: 42, kind: 'food', title: 'Foods to avoid',
     text: 'Unpasteurised milk and soft cheeses made from it, raw or undercooked meat, eggs and seafood, liver, and high-mercury fish such as shark, swordfish and king mackerel. Paneer made with pasteurised milk is fine.',
     src: ['nhs-food', 'fda-fish', 'acog-food'] },
-  { id: 'fish', from: 4, to: 42, kind: 'food', title: 'Do eat fish — the low-mercury kind',
+  { id: 'fish', icon: 'fish', from: 4, to: 42, kind: 'food', title: 'Do eat fish — the low-mercury kind',
     text: '2–3 servings a week of low-mercury fish (for example sardines, anchovies, salmon) supports your baby\'s brain development.',
     src: ['fda-fish', 'acog-food'] },
-  { id: 'vitd', from: 4, to: 42, kind: 'supplement', title: 'Vitamin D — ask what applies to you',
+  { id: 'vitd', icon: 'sun', from: 4, to: 42, kind: 'supplement', title: 'Vitamin D — ask what applies to you',
     text: 'UK advice is 10 micrograms (400 IU) a day through pregnancy. WHO does not recommend it routinely for everyone. India\'s calcium tablets already contain some vitamin D. Ask your doctor.',
     src: ['nhs-vit', 'who-anc', 'in-calcium'] },
-  { id: 'move', from: 4, to: 42, kind: 'body', title: 'Keep moving, gently',
+  { id: 'move', icon: 'shoe', from: 4, to: 42, kind: 'body', title: 'Keep moving, gently',
     text: 'If your doctor hasn\'t advised otherwise, aim for at least 150 minutes a week of moderate activity — brisk walking counts — plus some gentle strengthening.',
     src: ['who-pa', 'who-anc'] },
-  { id: 'mind', from: 4, to: 42, kind: 'mind', title: 'Your feelings count too',
+  { id: 'mind', icon: 'mind', from: 4, to: 42, kind: 'mind', title: 'Your feelings count too',
     text: 'Almost 1 in 5 women have a mental health condition during pregnancy or the year after. Feeling low, anxious or not yourself for two weeks or more? Tell your doctor — it is common and treatable.',
     src: ['who-pmh', 'nice-mh'] },
-  { id: 'urgent', from: 4, to: 42, kind: 'watch', title: 'Don\'t wait — call now if you have',
+  { id: 'urgent', icon: 'phone', from: 4, to: 42, kind: 'watch', title: 'Don\'t wait — call now if you have',
     text: 'Bleeding from the vagina, fluid leaking, stomach pain, unusual discharge, swelling with blurred vision or a severe headache, or itching (often worse at night, on hands and feet).',
     src: ['nhs-still'] },
 
   /* ---------- second trimester ---------- */
-  { id: 'eat2', from: 14, to: 27, kind: 'food', title: 'A little extra food — not double',
+  { id: 'eat2', icon: 'apple', from: 14, to: 27, kind: 'food', title: 'A little extra food — not double',
     text: 'You need about 340 extra kcal a day in the second trimester — roughly one healthy snack. "Eat for two" isn\'t the advice; "eat twice as healthy" is.',
     src: ['acog-food'] },
-  { id: 'ifa', from: 14, to: 42, kind: 'supplement', india: true, title: 'Iron + folic acid tablet daily (from the 4th month)',
+  { id: 'ifa', icon: 'tabletRed', from: 14, to: 42, kind: 'supplement', india: true, title: 'Iron + folic acid tablet daily (from the 4th month)',
     text: 'India\'s programme gives one red IFA tablet (60 mg iron + 500 µg folic acid) daily for 180 days in pregnancy, continuing after birth. Take it about 2 hours after a meal, and not together with your calcium tablet.',
     src: ['in-amb', 'in-calcium', 'who-anc', 'r-iron'] },
-  { id: 'calcium', from: 14, to: 42, kind: 'supplement', india: true, title: 'Calcium twice a day (from 14 weeks)',
+  { id: 'calcium', icon: 'milk', from: 14, to: 42, kind: 'supplement', india: true, title: 'Calcium twice a day (from 14 weeks)',
     text: '500 mg with one meal and 500 mg with another (1 g a day), continuing for 6 months after birth. Don\'t take both together or with iron. Calcium lowers the risk of pre-eclampsia.',
     src: ['in-calcium', 'r-calcium', 'who-anc'] },
-  { id: 'deworm', from: 14, to: 27, kind: 'supplement', india: true, due: true, title: 'One deworming tablet this trimester',
+  { id: 'deworm', icon: 'tabletWhite', from: 14, to: 27, kind: 'supplement', india: true, due: true, title: 'One deworming tablet this trimester',
     text: 'A single albendazole tablet is given in the second trimester, not in the first.',
     src: ['in-deworm', 'in-amb'] },
-  { id: 'td', from: 12, to: 24, kind: 'vaccine', india: true, due: true, title: 'Td (tetanus–diphtheria) vaccine',
+  { id: 'td', icon: 'syringe', from: 12, to: 24, kind: 'vaccine', india: true, due: true, title: 'Td (tetanus–diphtheria) vaccine',
     text: 'India: first dose early in pregnancy, second dose 4 weeks later (or one booster if you had two doses in a pregnancy within the last 3 years). FOGSI suggests starting at or after 12 weeks.',
     src: ['in-td', 'in-fogsi', 'who-anc'] },
-  { id: 'flu', from: 12, to: 42, kind: 'vaccine', title: 'Flu vaccine is safe in pregnancy',
+  { id: 'flu', icon: 'syringe', from: 12, to: 42, kind: 'vaccine', title: 'Flu vaccine is safe in pregnancy',
     text: 'The inactivated flu shot can be given in any trimester; FOGSI suggests from 12 weeks. Flu is more serious in pregnancy, and the vaccine also protects your newborn.',
     src: ['acog-vacc', 'cdc-vacc', 'in-fogsi'] },
-  { id: 'pmsma', from: 14, to: 40, kind: 'check', india: true, title: 'Free check-up on the 9th of every month',
+  { id: 'pmsma', icon: 'calendar', from: 14, to: 40, kind: 'check', india: true, title: 'Free check-up on the 9th of every month',
     text: 'Under PMSMA, government health facilities offer a free specialist antenatal check-up on the 9th of each month in the second and third trimesters.',
     src: ['in-pmsma'] },
-  { id: 'feel', from: 16, to: 24, kind: 'body', title: 'First movements',
+  { id: 'feel', icon: 'feet', from: 16, to: 24, kind: 'body', title: 'First movements',
     text: 'Most women first feel their baby move between 16 and 24 weeks. If you haven\'t felt any movement by 24 weeks, tell your doctor.',
     src: ['nhs-still', 'nhs-appts'] },
-  { id: 'anomaly', from: 18, to: 21, kind: 'check', due: true, title: 'Anomaly (mid-pregnancy) scan',
+  { id: 'anomaly', icon: 'scan', from: 18, to: 21, kind: 'check', due: true, title: 'Anomaly (mid-pregnancy) scan',
     text: 'Done between 18 and 20 weeks + 6 days. It checks how your baby is developing — heart, brain, spine, face, kidneys and tummy. In India, the PCPNDT Act forbids telling anyone the baby\'s sex.',
     src: ['nhs-screen', 'who-anc', 'in-pcpndt'] },
-  { id: 'pe', from: 20, to: 42, kind: 'watch', title: 'Signs of pre-eclampsia',
+  { id: 'pe', icon: 'warning', from: 20, to: 42, kind: 'watch', title: 'Signs of pre-eclampsia',
     text: 'A severe headache, blurred vision or flashing lights, pain just below the ribs, being sick, or sudden swelling of your face, hands or feet.',
     src: ['nhs-pe'] },
-  { id: 'gdm2', from: 24, to: 28, kind: 'check', due: true, title: 'Glucose test for gestational diabetes',
+  { id: 'gdm2', icon: 'glucose', from: 24, to: 28, kind: 'check', due: true, title: 'Glucose test for gestational diabetes',
     text: 'A 75 g OGTT between 24 and 28 weeks checks for gestational diabetes (in India, repeated if your first-visit test was normal). Raised blood sugar in pregnancy is linked with bigger babies and birth complications.',
     src: ['in-gdm', 'r-hapo', 'nice-anc'] },
-  { id: 'move24', from: 24, to: 42, kind: 'watch', title: 'Movements slowed, changed or stopped',
+  { id: 'move24', icon: 'feet', from: 24, to: 42, kind: 'watch', title: 'Movements slowed, changed or stopped',
     text: 'Get to know your baby\'s own pattern. If it changes, call your hospital the same day — don\'t wait until tomorrow. Babies do not move less towards the end of pregnancy.',
     src: ['nhs-still'], link: { to: '/tools/kicks', label: 'Open the kick counter' } },
 
   /* ---------- third trimester ---------- */
-  { id: 'eat3', from: 28, to: 42, kind: 'food', title: 'A bit more food now',
+  { id: 'eat3', icon: 'apple', from: 28, to: 42, kind: 'food', title: 'A bit more food now',
     text: 'About 450 extra kcal a day in the third trimester — still not "eating for two".',
     src: ['acog-food'] },
-  { id: 'hb28', from: 26, to: 29, kind: 'check', due: true, title: '28-week bloods',
+  { id: 'hb28', icon: 'drop', from: 26, to: 29, kind: 'check', due: true, title: '28-week bloods',
     text: 'Haemoglobin is usually re-checked around 28 weeks. If your blood group is Rh-negative, you\'ll be offered anti-D.',
     src: ['nice-sched', 'nhs-appts'] },
-  { id: 'sleep', from: 28, to: 42, kind: 'body', title: 'Go to sleep on your side',
+  { id: 'sleep', icon: 'moon', from: 28, to: 42, kind: 'body', title: 'Go to sleep on your side',
     text: 'From 28 weeks, settle to sleep on your left or right side. Going to sleep on your back is linked with a higher risk of stillbirth. Woke up on your back? Just turn over.',
     src: ['nhs-still', 'r-sleep'] },
-  { id: 'tdap', from: 27, to: 36, kind: 'vaccine', due: true, title: 'Whooping cough (Tdap) vaccine',
+  { id: 'tdap', icon: 'syringe', from: 27, to: 36, kind: 'vaccine', due: true, title: 'Whooping cough (Tdap) vaccine',
     text: 'Best between 27 and 36 weeks, in every pregnancy — your antibodies protect your baby in the first months. FOGSI suggests it in place of the second Td dose. (UK offers it from 16 weeks.)',
     src: ['cdc-vacc', 'acog-vacc', 'in-fogsi', 'r-pertussis', 'nhs-vacc'] },
-  { id: 'rsv', from: 28, to: 36, kind: 'vaccine', title: 'RSV vaccine — ask if it\'s offered',
+  { id: 'rsv', icon: 'syringe', from: 28, to: 36, kind: 'vaccine', title: 'RSV vaccine — ask if it\'s offered',
     text: 'Some countries offer it in the third trimester to protect newborns (UK from 28 weeks; US at 32–36 weeks in RSV season). Ask your doctor whether it\'s available to you.',
     src: ['nhs-vacc', 'cdc-vacc', 'in-fogsi'] },
-  { id: 'gbs', from: 35, to: 38, kind: 'check', title: 'Group B strep swab (some countries)',
+  { id: 'gbs', icon: 'stethoscope', from: 35, to: 38, kind: 'check', title: 'Group B strep swab (some countries)',
     text: 'In the US, a swab at 36–37 weeks is routine; in the UK and India it isn\'t routine everywhere. Ask whether your hospital does it.',
     src: ['acog-gbs'] },
-  { id: 'labourplan', from: 35, to: 42, kind: 'check', title: 'Know when to go in',
+  { id: 'labourplan', icon: 'hospital', from: 35, to: 42, kind: 'check', title: 'Know when to go in',
     text: 'At your 36-week visit, ask when to come to hospital once contractions start or your waters break, and note your doctor\'s rule in the contraction timer.',
     src: ['nice-sched'], link: { to: '/tools/contractions', label: 'Open the contraction timer' } },
 
   /* ---------- WHO contact schedule ---------- */
   ...WHO_CONTACTS.map((w): Advice => ({
-    id: `who-${w}`, from: w - 1, to: w, kind: 'check', due: true,
+    id: `who-${w}`, icon: 'calendar', from: w - 1, to: w, kind: 'check', due: true,
     title: `Routine check-up around week ${w}`,
     text: 'Part of WHO\'s 8-contact schedule (first by 12 weeks, then 20, 26, 30, 34, 36, 38 and 40 weeks): a check on you and your baby, and time for your questions.',
     src: ['who-anc'], link: { to: '/tools/visits', label: 'Add it to your visits' },
@@ -247,5 +249,11 @@ export function adviceFor(week: number) {
   // "now" = things that are due in a window, or that just started this week or last
   const now = all.filter(a => (a.due || a.from >= w - 1) && a.kind !== 'watch')
   const rest = all.filter(a => !now.includes(a))
-  return { week: w, now, rest, all }
+  // the four cards shown up front: what's due or new first, then the most useful ongoing items
+  const ORDER: Kind[] = ['check', 'vaccine', 'supplement', 'body', 'food', 'mind', 'watch']
+  const rank = (a: Advice) => (now.includes(a) ? 0 : 10) + (a.due ? 0 : 1) + ORDER.indexOf(a.kind) / 10
+  const ranked = all.slice().sort((a, b) => rank(a) - rank(b))
+  const top = ranked.slice(0, 4)
+  const more = ranked.slice(4)
+  return { week: w, now, rest, all, top, more }
 }
