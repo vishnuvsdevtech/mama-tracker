@@ -149,17 +149,7 @@ export default function CrawlingBaby() {
     const onVis = () => pauseAll(document.hidden)
     document.addEventListener('visibilitychange', onVis)
 
-    // tuck the baby away while she scrolls, so it never sits on top of what she's reading
-    let tuckT = 0, tucked = false
-    const lane = el.parentElement
-    const onScroll = () => {
-      if (!tucked) { tucked = true; lane?.classList.add('tucked'); pauseAll(true) }
-      clearTimeout(tuckT)
-      tuckT = window.setTimeout(() => { tucked = false; lane?.classList.remove('tucked'); pauseAll(document.hidden) }, 900)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
-      clearTimeout(tuckT); window.removeEventListener('scroll', onScroll)
       clearTimeout(warm); clearTimeout(offTimer); clearInterval(look); cancelAnimationFrame(cutting)
       ro.disconnect(); window.removeEventListener('resize', onResize)
       anim?.cancel(); s.move = undefined

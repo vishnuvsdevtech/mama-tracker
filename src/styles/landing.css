@@ -277,3 +277,5 @@ footer svg{display:inline;width:14px;height:14px;vertical-align:-2px;color:var(-
 /* ---- performance: the SVG baby animations repaint every frame; stop them while
    the page is scrolling and while the baby isn't on screen ---- */
 html.is-scrolling *,html.is-scrolling *::before,html.is-scrolling *::after,.stage[data-off] *{animation-play-state:paused!important}
+/* …except the crawling baby: it keeps crawling while she scrolls */
+html.is-scrolling .baby-lane *{animation-play-state:running!important}

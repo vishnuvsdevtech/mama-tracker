@@ -1,5 +1,5 @@
 import { useEffect, useImperativeHandle, useRef, useState, type Ref } from 'react'
-import { HEART_PATH } from './Heart'
+import { HEART_PATH, HugIcon } from './Heart'
 import sacUrl from '../assets/womb/sac.webp'
 import babyUrl from '../assets/womb/baby.webp'
 
@@ -223,7 +223,7 @@ export default function WombBaby({
           <path d={HEART_PATH} fill={h.c} />
         </svg>
       ))}
-      {love && <span ref={lipRef} className={`love-cursor ${inside ? 'show' : ''}`} aria-hidden="true"><span>{hugging ? '🤗' : '💋'}</span></span>}
+      {love && <span ref={lipRef} className={`love-cursor ${inside ? 'show' : ''}`} aria-hidden="true"><span>{hugging ? <HugIcon size={46} /> : '💋'}</span></span>}
       {stamps.map(t => (
         <span key={t.id} className="kiss-stamp" aria-hidden="true" style={{ left: t.x, top: t.y, ['--r' as string]: `${t.r}deg` }}>{t.e}</span>
       ))}

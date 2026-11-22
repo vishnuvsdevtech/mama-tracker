@@ -206,7 +206,6 @@
 /* ============ crawling baby ============ */
 .baby-lane{position:fixed;left:0;right:0;bottom:0;height:150px;pointer-events:none;z-index:15;transition:transform .35s cubic-bezier(.3,1.2,.5,1);will-change:transform;contain:layout style}
 .baby-lane::before{content:"";position:absolute;left:0;right:0;bottom:0;height:56px;background:linear-gradient(180deg,rgba(255,243,246,0),rgba(255,243,246,.88));pointer-events:none}
-.baby-lane.tucked{transform:translateY(115%)}
 .baby-crawler{position:absolute;left:0;bottom:10px;height:110px;pointer-events:auto;cursor:pointer;will-change:transform;contain:layout;-webkit-tap-highlight-color:transparent;outline-offset:4px}
 .baby-crawler.still{left:24px}
 .baby-crawler video,.baby-crawler img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity .14s linear}
@@ -231,6 +230,7 @@
 .stage.love{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .love-cursor{position:absolute;left:-100px;top:-100px;pointer-events:none;z-index:5;transform:translate(-50%,-55%);opacity:0;transition:opacity .15s}
 .love-cursor.show{opacity:1}
+.love-cursor svg{display:block}
 .love-cursor>span{display:block;font-size:40px;line-height:1;filter:drop-shadow(0 4px 6px rgba(200,41,94,.25));transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
 .love-cursor.pucker>span{transform:scale(.78) rotate(-8deg)}
 .stage.hugging .love-cursor>span{transform:scale(1.25);animation:hugPulse .9s ease-in-out infinite}

@@ -21,3 +21,16 @@ export function Arrow({ size = 18, back = false }: { size?: number; back?: boole
     </svg>
   )
 }
+/** A hug: a big heart wrapping its arms around a little one. */
+export function HugIcon({ size = 24, className }: { size?: number; className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" width={size} height={size} className={className} aria-hidden="true">
+      <path d={HEART_PATH} transform="translate(2 1) scale(1.85)" fill="#FE6490" stroke="#fff" strokeWidth="1.1" strokeLinejoin="round" />
+      <path d={HEART_PATH} transform="translate(13.5 12.5) scale(.88)" fill="#FFE3EA" />
+      <g fill="none" stroke="#B8215A" strokeWidth="3.6" strokeLinecap="round">
+        <path d="M8.6 19.5 C 7.6 28, 14 33, 20.5 31" /><path d="M39.4 19.5 C 40.4 28, 34 33, 27.5 31" />
+      </g>
+      <circle cx="20.6" cy="30.9" r="2.7" fill="#B8215A" /><circle cx="27.4" cy="30.9" r="2.7" fill="#B8215A" />
+    </svg>
+  )
+}

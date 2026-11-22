@@ -5,6 +5,7 @@ import { useProfile } from '../lib/ProfileContext'
 import { ageText, fmtDate, whereAreWe } from '../lib/profile'
 import { babyFact, mamaFact, sizeFor, trimester } from '../lib/weeks'
 import MamaAvatar from '../components/MamaAvatar'
+import { HugIcon } from '../components/Heart'
 import WombBaby, { type WombBabyHandle } from '../components/WombBaby'
 import { addLove, loadAffection, type Affection } from '../lib/affection'
 import CrawlingBaby from '../components/CrawlingBaby'
@@ -151,7 +152,7 @@ export default function Home() {
                 <span className="love-n"><b>{love?.kisses ?? 0}</b><small>{love?.kisses === 1 ? 'kiss' : 'kisses'}{love?.todayKisses ? ` · ${love.todayKisses} today` : ''}</small></span>
               </button>
               <button type="button" className={`love-chip ${bump === 'hug' ? 'bump' : ''}`} onClick={() => bubble.current?.hug()} aria-label={`Send ${baby} a hug. ${love?.hugs ?? 0} so far.`}>
-                <span className="love-emoji" aria-hidden="true">🤗</span>
+                <span className="love-emoji" aria-hidden="true"><HugIcon size={26} /></span>
                 <span className="love-n"><b>{love?.hugs ?? 0}</b><small>{love?.hugs === 1 ? 'hug' : 'hugs'}{love?.todayHugs ? ` · ${love.todayHugs} today` : ''}</small></span>
               </button>
             </div>
