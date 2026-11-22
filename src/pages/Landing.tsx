@@ -97,7 +97,7 @@ export default function Landing() {
                   <div className="fact baby-f"><h4>Baby this week</h4><span key={'b' + week} className="swap">{babyFact(week)}</span></div>
                   <div className="fact mama-f"><h4>You this week</h4><span key={'m' + trimester(week) + week} className="swap">{mamaFact(week)}</span></div>
                 </div>
-                <p className="disclaim">General, approximate information — every baby grows at their own pace. Your doctor knows you two best.</p>
+                <p className="disclaim">General, approximate information — every baby grows at their own pace. Source: <a href="https://www.nhs.uk/best-start-in-life/pregnancy/week-by-week-guide-to-pregnancy/" target="_blank" rel="noopener noreferrer">NHS week-by-week guide</a>. Your doctor knows you two best.</p>
               </div>
             </div>
           </div>
@@ -226,6 +226,14 @@ export default function Landing() {
               <div className="prom reveal d2"><div className="pi c-lav"><svg viewBox="0 0 26 26"><use href="#i-heart" x="4" y="4" width="18" height="18" style={{color:'#8C76AE'}}/></svg></div><h3>Boy or girl? A surprise.</h3><p>We never guess baby's sex from a scan. It's the law in India — and the best surprise of the whole journey.</p></div>
               <div className="prom reveal d3"><div className="pi c-butter"><svg viewBox="0 0 26 26"><rect x="5" y="4" width="16" height="19" rx="3" fill="#E7C67A"/><path d="M13 9v7M9.5 12.5h7" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"/></svg></div><h3>Not your doctor</h3><p>We help you learn and remember. Diagnosis and advice stay with the person who knows you.</p></div>
             </div>
+            <div className="science reveal">
+              <div className="sci-ico" aria-hidden="true">🔬</div>
+              <div>
+                <h3>Only science. Always with a link.</h3>
+                <p>Everything we tell you comes from published clinical guidelines — WHO, NICE&thinsp;/&thinsp;NHS, ACOG&thinsp;/&thinsp;CDC, India's Ministry of Health and FOGSI — or peer-reviewed research from Cochrane, NEJM, The Lancet and BMJ. No blogs, no brands, no old wives' tales. Every tip shows its source, so you can read the original yourself.</p>
+              </div>
+              <Link to="/sources" className="btn btn-soft btn-sm">See our sources</Link>
+            </div>
           </div>
         </section>
 
@@ -256,7 +264,7 @@ export default function Landing() {
       <footer>
           <div className="wrap row">
             <span>Nine months, organised · made with <svg><use href="#i-heart"/></svg> in Kerala</span>
-            <span>General information only — not medical advice. Always follow your doctor.</span>
+            <span>Built only on published guidelines and research · <Link to="/sources">Our sources</Link> · General information, not medical advice. Always follow your doctor.</span>
           </div>
         </footer>
       <div className="baby-space" aria-hidden="true" />

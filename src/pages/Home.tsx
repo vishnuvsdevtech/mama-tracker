@@ -4,11 +4,13 @@ import { motion } from 'motion/react'
 import { useProfile } from '../lib/ProfileContext'
 import { ageText, fmtDate, whereAreWe } from '../lib/profile'
 import { babyFact, mamaFact, sizeFor, trimester } from '../lib/weeks'
+import { SOURCE } from '../lib/evidence'
 import MamaAvatar from '../components/MamaAvatar'
 import { HugIcon } from '../components/Heart'
 import WombBaby, { type WombBabyHandle } from '../components/WombBaby'
 import { addLove, loadAffection, type Affection } from '../lib/affection'
 import CrawlingBaby from '../components/CrawlingBaby'
+import WeekGuide from '../components/WeekGuide'
 import Brand from '../components/Brand'
 import { weekScale } from './Landing'
 import { storage } from '../lib/storage'
@@ -20,13 +22,12 @@ const TOOLS: Record<string, Tool> = {
   visits: { title: 'Visits & notes', text: 'Appointments, what the doctor said, questions for next time.', tone: 'c-lav', to: '/tools/visits', icon: '🗓️' },
   weight: { title: 'Weight', text: 'Your own numbers, gently. You can even hide them.', tone: 'c-sage', to: '/tools/weight', icon: '⚖️' },
   contractions: { title: 'Contraction timer', text: 'Start, stop, breathe. Compared with your doctor\'s rule.', tone: 'c-rose', to: '/tools/contractions', pregnantOnly: true, icon: '⏱️' },
-  learn: { title: 'This week, explained', text: 'A little science about you two, every week.', tone: 'c-rose', icon: '✨' },
   scans: { title: 'Scans & reports', text: 'One folder, filed by week.', tone: 'c-sage', icon: '🩻' },
   bag: { title: 'Hospital bag', text: 'Wakes up at 35 weeks.', tone: 'c-peach', icon: '👜' },
   journal: { title: 'Little journal', text: 'Notes for baby to read one day.', tone: 'c-butter', icon: '📔' },
 }
 // onboarding choices that are now covered by a tool
-const LIKE_TO_TOOL: Record<string, string> = { questions: 'visits' }
+const LIKE_TO_TOOL: Record<string, string> = { questions: 'visits' }  // 'learn' is the week guide above the tools
 
 /** one-line live summaries for the tool tiles */
 function useToolSummaries() {
@@ -164,8 +165,11 @@ export default function Home() {
           <section className="facts home-facts">
             <div className="fact baby-f"><h4>{baby} this week</h4>{babyFact(w.week)}</div>
             <div className="fact mama-f"><h4>You this week</h4>{mamaFact(w.week)}</div>
+            <p className="facts-src">Typical development and sizes are approximate — every baby grows at their own pace. Source: <a href={SOURCE['nhs-weeks'].url} target="_blank" rel="noopener noreferrer">NHS week-by-week guide</a></p>
           </section>
         )}
+
+        {w?.pregnant && <WeekGuide week={w.week} />}
 
         <section className="tools">
           <h2 className="tools-h">Your space</h2>
@@ -189,7 +193,7 @@ export default function Home() {
             })}
           </div>
         </section>
-        <p className="disclaim center">General information only — not medical advice. Your doctor knows you two best.</p>
+        <p className="disclaim center">Built only on published guidelines and research — <Link to="/sources" className="link">see our sources</Link>. General information, not medical advice: your doctor knows you two best.</p>
         <div className="baby-space" aria-hidden="true" />
       </main>
       <CrawlingBaby />

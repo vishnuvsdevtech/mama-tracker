@@ -9,6 +9,7 @@ const Kicks = lazy(() => import('./pages/tools/Kicks'))
 const Contractions = lazy(() => import('./pages/tools/Contractions'))
 const Visits = lazy(() => import('./pages/tools/Visits'))
 const Weight = lazy(() => import('./pages/tools/Weight'))
+const Sources = lazy(() => import('./pages/Sources'))
 
 function ScrollTop() {
   const { pathname } = useLocation()
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/start/:step" element={<Onboarding />} />
         <Route path="/home" element={<Home />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/sources" element={<Sources />} />
         <Route path="/tools/kicks" element={<Kicks />} />
         <Route path="/tools/contractions" element={<Contractions />} />
         <Route path="/tools/visits" element={<Visits />} />
