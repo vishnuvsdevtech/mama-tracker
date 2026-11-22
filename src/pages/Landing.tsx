@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { onScrollFrame } from '../lib/scrollState'
 import { Link } from 'react-router-dom'
 import WombBaby from '../components/WombBaby'
 import CrawlingBaby from '../components/CrawlingBaby'
@@ -14,21 +15,24 @@ export const weekScale = (w: number) => 0.34 + 0.66 * Math.pow((Math.max(4, Math
 export default function Landing() {
   const { profile } = useProfile()
   const [week, setWeek] = useState(20)
-  const [scrolled, setScrolled] = useState(false)
+  const navRef = useRef<HTMLElement>(null)
   useReveal()
 
   useEffect(() => {
     const track = document.getElementById('track')
     const vine = track?.querySelector<SVGPathElement>('.vine path')
-    const onScroll = () => {
-      setScrolled(window.scrollY > 8)
+    let wasScrolled = false
+    const update = () => {
+      const sc = window.scrollY > 8
+      if (sc !== wasScrolled) { wasScrolled = sc; navRef.current?.classList.toggle('scrolled', sc) }
       if (!track || !vine) return
       const r = track.getBoundingClientRect(), vh = window.innerHeight
+      if (r.top > vh || r.bottom < 0) return            // vine not on screen: nothing to draw
       const p = Math.max(0, Math.min(1, (vh * 0.85 - r.top) / (r.height + vh * 0.35)))
       vine.style.strokeDashoffset = (1200 * (1 - p)).toFixed(0)
     }
-    window.addEventListener('scroll', onScroll, { passive: true }); onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
+    update()
+    return onScrollFrame(update)
   }, [])
 
   const startTo = profile ? '/home' : '/start/hello'
@@ -39,7 +43,7 @@ export default function Landing() {
   return (
     <>
       <IconDefs />
-      <nav className={`top ${scrolled ? 'scrolled' : ''}`}>
+      <nav className="top" ref={navRef}>
         <div className="wrap row">
           <Brand />
           <div className="navlinks">

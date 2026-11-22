@@ -56,18 +56,41 @@ export default function WombBaby({
   // skin family
   const s0 = shade(skin, 0.28), s1 = skin, knee = shade(skin, 0.06), foot = shade(skin, -0.02), arm = shade(skin, -0.03), hand = shade(skin, 0.12), ear = shade(skin, -0.02)
 
+  // pause the SVG loops whenever the bubble is off screen (they repaint every frame)
+  useEffect(() => {
+    const el = stage.current
+    if (!el || typeof IntersectionObserver === 'undefined') return
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) el.removeAttribute('data-off'); else el.setAttribute('data-off', '')
+    })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
+
+  // eyes follow the pointer: at most one update per frame, and the bubble's position is
+  // re-measured only after a scroll/resize instead of on every mouse move
   useEffect(() => {
     if (!followEyes || reduce) return
-    const onMove = (e: PointerEvent) => {
+    let rect: DOMRect | null = null, x = 0, y = 0, queued = false
+    const stale = () => { rect = null }
+    const apply = () => {
+      queued = false
       const el = stage.current, p = pupils.current
-      if (!el || !p) return
-      const r = el.getBoundingClientRect()
-      const dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height * 0.42)
+      if (!el || !p || el.hasAttribute('data-off')) return
+      rect = rect ?? el.getBoundingClientRect()
+      const dx = x - (rect.left + rect.width / 2), dy = y - (rect.top + rect.height * 0.42)
       const d = Math.hypot(dx, dy) || 1, m = Math.min(4.5, d / 60)
       p.style.transform = `translate(${(dx / d * m).toFixed(2)}px,${(dy / d * m).toFixed(2)}px)`
     }
+    const onMove = (e: PointerEvent) => { x = e.clientX; y = e.clientY; if (!queued) { queued = true; requestAnimationFrame(apply) } }
     window.addEventListener('pointermove', onMove, { passive: true })
-    return () => window.removeEventListener('pointermove', onMove)
+    window.addEventListener('scroll', stale, { passive: true })
+    window.addEventListener('resize', stale, { passive: true })
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('scroll', stale)
+      window.removeEventListener('resize', stale)
+    }
   }, [followEyes, reduce])
 
   useEffect(() => () => timers.current.forEach(clearTimeout), [])

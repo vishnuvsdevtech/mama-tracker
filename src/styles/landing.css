@@ -22,15 +22,15 @@ em.accent{font-style:italic;color:var(--rose);font-family:var(--serif);font-vari
 .eyebrow{font-size:12.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-3);font-weight:700}
 
 /* soft background blobs */
-.bg-blobs{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
-.bg-blobs span{position:absolute;border-radius:50%;filter:blur(60px);opacity:.55}
-.bg-blobs .b1{width:520px;height:520px;background:var(--blush);top:-160px;right:-120px;animation:drift 22s ease-in-out infinite}
-.bg-blobs .b2{width:420px;height:420px;background:#FBE6C8;top:40%;left:-180px;animation:drift 26s ease-in-out infinite reverse}
-.bg-blobs .b3{width:360px;height:360px;background:#E6ECDD;bottom:-120px;right:10%;animation:drift 30s ease-in-out infinite}
+.bg-blobs{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;contain:strict}
+.bg-blobs span{position:absolute;border-radius:50%;opacity:.55;will-change:transform;backface-visibility:hidden}
+.bg-blobs .b1{width:680px;height:680px;background:radial-gradient(closest-side,var(--blush),rgba(246,218,210,0));top:-160px;right:-120px;animation:drift 22s ease-in-out infinite}
+.bg-blobs .b2{width:560px;height:560px;background:radial-gradient(closest-side,#FBE6C8,rgba(251,230,200,0));top:40%;left:-180px;animation:drift 26s ease-in-out infinite reverse}
+.bg-blobs .b3{width:500px;height:500px;background:radial-gradient(closest-side,#E6ECDD,rgba(230,236,221,0));bottom:-120px;right:10%;animation:drift 30s ease-in-out infinite}
 @keyframes drift{50%{transform:translate(30px,40px) scale(1.06)}}
 
 /* nav */
-nav.top{position:sticky;top:0;z-index:20;backdrop-filter:saturate(1.2) blur(14px);-webkit-backdrop-filter:saturate(1.2) blur(14px);background:rgba(252,246,240,.72);border-bottom:1px solid transparent;transition:border-color .3s}
+nav.top{position:sticky;top:0;z-index:20;background:rgba(252,246,240,.95);border-bottom:1px solid transparent;transition:border-color .3s}
 nav.top.scrolled{border-bottom-color:var(--line)}
 nav .row{display:flex;align-items:center;justify-content:space-between;height:72px}
 .brand{white-space:nowrap;display:flex;align-items:center;gap:10px;text-decoration:none;font-family:var(--serif);font-size:21px;font-weight:500;font-variation-settings:"SOFT" 100}
@@ -61,7 +61,7 @@ h1 em{font-style:italic;color:var(--rose)}
 .trust svg{width:16px;height:16px;color:var(--sage-deep)}
 
 /* womb stage */
-.stage{position:relative;aspect-ratio:1/1;max-width:540px;width:100%;margin:0 auto;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
+.stage{position:relative;contain:layout;aspect-ratio:1/1;max-width:540px;width:100%;margin:0 auto;cursor:pointer;-webkit-tap-highlight-color:transparent;user-select:none}
 .stage svg.womb{width:100%;height:100%;overflow:visible}
 .ring{transform-box:fill-box;transform-origin:center;animation:ripple 3.2s ease-out infinite}
 .ring.r2{animation-delay:1.6s}
@@ -271,3 +271,8 @@ footer svg{display:inline;width:14px;height:14px;vertical-align:-2px;color:var(-
 
 /* mama avatar blink */
 .m-eyes{transform-box:fill-box;transform-origin:center;animation:blink 6.5s infinite}
+
+/* ---- performance: the SVG baby animations repaint every frame; stop them while
+   the page is scrolling and while the baby isn't on screen ---- */
+.stage svg.womb{will-change:transform}
+html.is-scrolling *,html.is-scrolling *::before,html.is-scrolling *::after,.stage[data-off] *{animation-play-state:paused!important}

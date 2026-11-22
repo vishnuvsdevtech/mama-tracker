@@ -29,7 +29,7 @@ export default function CrawlingBaby() {
 
   const box = useRef<HTMLDivElement>(null)
   const vids = { crawl: useRef<HTMLVideoElement>(null), smile: useRef<HTMLVideoElement>(null), tickle: useRef<HTMLVideoElement>(null) }
-  const st = useRef({ clip: 'crawl' as Clip, x: -400, waitUntil: 0, nextLook: 0, wantLook: false, last: 0, raf: 0, hidden: false })
+  const st = useRef<{ clip: Clip; nextLook: number; wantLook: boolean; hidden: boolean; move?: (on: boolean) => void }>({ clip: 'crawl', nextLook: 0, wantLook: false, hidden: false })
   const audio = useRef<HTMLAudioElement | null>(null)
 
   // arrive a moment after the page has settled, so the hero loads first
@@ -64,18 +64,52 @@ export default function CrawlingBaby() {
   }
 
   // ---- the main loop ----
+  // Movement runs as a Web Animation (on the compositor), so the page does no per-frame
+  // JavaScript, style or layout work just to slide the baby along.
   useEffect(() => {
     if (napping !== false || reduce || broken) return
     const s = st.current
-    const now = performance.now()
-    s.last = now; s.nextLook = now + 5000 + Math.random() * 4000
-    if (box.current && s.x === -400) s.x = -box.current.offsetWidth - 10   // start just off the left edge
+    const el = box.current!
     const crawl = vids.crawl.current!, smile = vids.smile.current!, tickle = vids.tickle.current!
+    const size = { w: el.offsetWidth, h: el.offsetHeight, vw: window.innerWidth }
+    const speed = () => SPEED * size.h                       // px per second
+    let anim: Animation | null = null, x0 = -size.w - 10, offTimer = 0, cutting = 0
+    s.nextLook = performance.now() + 5000 + Math.random() * 4000
+
+    const xNow = () => anim && anim.currentTime != null ? x0 + speed() * (Number(anim.currentTime) / 1000) : x0
+    const startCrossing = (from: number) => {
+      x0 = from
+      const to = size.vw + 30
+      anim?.cancel()
+      anim = el.animate([{ transform: `translate3d(${from}px,0,0)` }, { transform: `translate3d(${to}px,0,0)` }],
+        { duration: Math.max(1, (to - from) / speed() * 1000), easing: 'linear', fill: 'forwards' })
+      anim.onfinish = () => {
+        crawl.pause()
+        offTimer = window.setTimeout(() => { startCrossing(-size.w - 30); if (!s.hidden) crawl.play().catch(() => {}) }, 3000 + Math.random() * 4000)
+      }
+      if (s.hidden || s.clip !== 'crawl') anim.pause()
+    }
+    s.move = (on: boolean) => { if (!anim || anim.playState === 'finished') return; if (on) anim.play(); else anim.pause() }
+    startCrossing(x0)
+
+    const ro = new ResizeObserver(() => {
+      const w = el.offsetWidth, h = el.offsetHeight
+      if (w === size.w && h === size.h) return
+      const x = xNow(); size.w = w; size.h = h
+      if (anim && anim.playState !== 'finished') startCrossing(x)
+    })
+    ro.observe(el)
+    const onResize = () => { size.vw = window.innerWidth; if (anim && anim.playState !== 'finished') startCrossing(xNow()) }
+    window.addEventListener('resize', onResize, { passive: true })
+
+    // the two reaction clips are only needed later: let the crawl load first
+    const warm = window.setTimeout(() => { for (const v of [smile, tickle]) if (v.paused && v.readyState < 2) { v.preload = 'auto'; v.load() } }, 2500)
 
     const backToCrawl = (clip: 'smile' | 'tickle') => {
       if (st.current.clip !== clip) return
       play('crawl', (manifest.clips[clip].exitTo) / FPS)
       show('crawl')
+      if (!s.hidden) s.move?.(true)
       st.current.nextLook = performance.now() + 7000 + Math.random() * 6000
     }
     const onSmileEnd = () => backToCrawl('smile')
@@ -83,52 +117,52 @@ export default function CrawlingBaby() {
     smile.addEventListener('ended', onSmileEnd)
     tickle.addEventListener('ended', onTickleEnd)
 
-    const tick = (t: number) => {
-      const dt = Math.min(0.05, (t - s.last) / 1000); s.last = t
-      const el = box.current
-      if (el && !s.hidden) {
-        const h = el.offsetHeight, w = el.offsetWidth, vw = window.innerWidth
-        if (s.clip === 'crawl') {
-          if (t < s.waitUntil) { /* off-screen pause */ }
-          else {
-            if (s.x > vw + 30) { s.x = -w - 30; s.waitUntil = t + 3000 + Math.random() * 4000; crawl.pause() }
-            else { if (crawl.paused) crawl.play().catch(() => {}); s.x += SPEED * h * dt }
-          }
-          // time for a look? only when fully on screen, and cut exactly on the matching crawl frame
-          const fully = s.x > vw * 0.08 && s.x + w < vw * 0.92
-          if (fully && t > s.nextLook) s.wantLook = true
-          if (s.wantLook && fully) {
-            const target = manifest.clips.smile.enterAt / FPS
-            if (Math.abs(crawl.currentTime - target) < 0.6 / FPS) {
-              s.wantLook = false
-              play('smile', 0); show('smile'); crawl.pause()
-            }
-          }
-        }
-        el.style.transform = `translate3d(${s.x.toFixed(1)}px,0,0)`
-      }
-      s.raf = requestAnimationFrame(tick)
+    // a few times a second: is it time to stop and smile? Only when fully on screen.
+    const target = manifest.clips.smile.enterAt / FPS
+    const cutToSmile = () => {
+      s.wantLook = false; cutting = 0
+      if (s.clip !== 'crawl' || s.hidden) return
+      s.move?.(false); play('smile', 0); show('smile'); crawl.pause()
     }
-    s.raf = requestAnimationFrame(tick)
+    const waitForFrame = () => {
+      // cut exactly on the crawl frame that matches the smile clip's first frame
+      if (!s.wantLook || s.clip !== 'crawl') { cutting = 0; return }
+      const near = Math.abs(crawl.currentTime - target) < 0.6 / FPS
+      if (near) return cutToSmile()
+      const v = crawl as HTMLVideoElement & { requestVideoFrameCallback?: (cb: () => void) => number }
+      cutting = v.requestVideoFrameCallback ? v.requestVideoFrameCallback(waitForFrame) : requestAnimationFrame(waitForFrame)
+    }
+    const look = window.setInterval(() => {
+      if (s.clip !== 'crawl' || s.hidden || s.wantLook || !anim || anim.playState !== 'running') return
+      const x = xNow()
+      const fully = x > size.vw * 0.08 && x + size.w < size.vw * 0.92
+      if (fully && performance.now() > s.nextLook) { s.wantLook = true; waitForFrame() }
+    }, 250)
 
-    const onVis = () => {
-      s.hidden = document.hidden
+    const pauseAll = (hidden: boolean) => {
+      s.hidden = hidden
       const v = vids[s.clip].current
-      if (document.hidden) v?.pause(); else { s.last = performance.now(); if (s.clip !== 'crawl' || performance.now() >= s.waitUntil) v?.play().catch(() => {}) }
+      if (hidden) { v?.pause(); s.move?.(false) }
+      else if (s.clip === 'crawl') { if (anim?.playState !== 'finished') { s.move?.(true); crawl.play().catch(() => {}) } }
+      else v?.play().catch(() => {})
     }
+    const onVis = () => pauseAll(document.hidden)
     document.addEventListener('visibilitychange', onVis)
 
     // tuck the baby away while she scrolls, so it never sits on top of what she's reading
-    let tuckT = 0
-    const lane = box.current?.parentElement
+    let tuckT = 0, tucked = false
+    const lane = el.parentElement
     const onScroll = () => {
-      lane?.classList.add('tucked')
-      clearTimeout(tuckT); tuckT = window.setTimeout(() => lane?.classList.remove('tucked'), 900)
+      if (!tucked) { tucked = true; lane?.classList.add('tucked'); pauseAll(true) }
+      clearTimeout(tuckT)
+      tuckT = window.setTimeout(() => { tucked = false; lane?.classList.remove('tucked'); pauseAll(document.hidden) }, 900)
     }
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => {
       clearTimeout(tuckT); window.removeEventListener('scroll', onScroll)
-      cancelAnimationFrame(s.raf)
+      clearTimeout(warm); clearTimeout(offTimer); clearInterval(look); cancelAnimationFrame(cutting)
+      ro.disconnect(); window.removeEventListener('resize', onResize)
+      anim?.cancel(); s.move = undefined
       smile.removeEventListener('ended', onSmileEnd)
       tickle.removeEventListener('ended', onTickleEnd)
       document.removeEventListener('visibilitychange', onVis)
@@ -144,6 +178,7 @@ export default function CrawlingBaby() {
     if (reduce || broken) return
     if (s.clip === 'tickle') return
     s.wantLook = false
+    s.move?.(false)
     vids[s.clip].current?.pause()
     play('tickle', 0); show('tickle')
   }
@@ -185,7 +220,7 @@ export default function CrawlingBaby() {
           ? <img src={`${base}baby-crawl-poster.webp`} alt="" />
           : (['crawl', 'smile', 'tickle'] as Clip[]).map(c => (
             <video key={c} ref={vids[c]} className={c === 'crawl' ? 'on' : ''} src={src(c)}
-              muted playsInline preload="auto" loop={c === 'crawl'} autoPlay={c === 'crawl'}
+              muted playsInline preload={c === 'crawl' ? 'auto' : 'metadata'} loop={c === 'crawl'} autoPlay={c === 'crawl'}
               poster={c === 'crawl' ? `${base}baby-crawl-poster.webp` : undefined}
               onError={() => setBroken(true)} disablePictureInPicture />
           ))}

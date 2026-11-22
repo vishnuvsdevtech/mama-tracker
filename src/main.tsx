@@ -4,6 +4,7 @@ import { BrowserRouter, MemoryRouter } from 'react-router-dom'
 import { MotionConfig } from 'motion/react'
 import { ProfileProvider } from './lib/ProfileContext'
 import App from './App'
+import { installScrollState } from './lib/scrollState'
 import './styles/landing.css'
 import './styles/app.css'
 
@@ -14,6 +15,8 @@ const Router = ({ children }: { children: React.ReactNode }) =>
   isPreview
     ? <MemoryRouter>{children}</MemoryRouter>
     : <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>{children}</BrowserRouter>
+
+installScrollState()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
