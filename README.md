@@ -68,6 +68,12 @@ or survive the user clearing Safari data.
 The Xcode project is already in `ios/`. It ships the same `dist/` build that
 GitHub Pages serves, so there is one codebase and two homes.
 
+Already done in the repo, so Xcode has nothing to guess: the icon is a full-bleed
+1024 px heart (opaque — the App Store rejects alpha), the launch screen and both
+splash variants use the same geometry, `CFBundleDisplayName` is "Nine months",
+and the iPhone build is portrait-only because the app is a one-handed vertical
+read.
+
 On a Mac with Xcode:
 
 ```bash

@@ -51,11 +51,10 @@
 	<array>
 		<string>armv7</string>
 	</array>
+	<!-- portrait only: the app is a one-handed, vertical read -->
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>
