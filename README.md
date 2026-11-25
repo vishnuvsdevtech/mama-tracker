@@ -46,3 +46,59 @@ If the repo name changes, update `base` in `vite.config.ts`.
 ## What this app does not do
 
 It doesn't diagnose, give medicine information, check symptoms, or guess the baby's sex. In India, revealing the baby's sex before birth is prohibited under the PCPNDT Act. Every number it shows is arithmetic on a date she typed.
+
+## iOS
+
+Two ways to get this onto a phone. The first works today and costs nothing; the
+second is a real app, and needs a Mac.
+
+### 1. Installed web app (no App Store)
+
+Open the site in **Safari** on the iPhone → Share → **Add to Home Screen**. It
+launches full-screen with the icon, works offline (the service worker caches the
+shell), and stores everything in the browser on that device. Nothing to build,
+nothing to pay, no review.
+
+What it cannot do: appear in the App Store, receive push notifications reliably
+(iOS only allows web push for installed web apps since 16.4, and it is patchy),
+or survive the user clearing Safari data.
+
+### 2. Native shell (Capacitor)
+
+The Xcode project is already in `ios/`. It ships the same `dist/` build that
+GitHub Pages serves, so there is one codebase and two homes.
+
+On a Mac with Xcode:
+
+```bash
+npm install
+npm run ios          # build the web app, then sync it into ios/
+npm run ios:open     # opens ios/App/App.xcodeproj in Xcode
+```
+
+Then in Xcode: choose the App target → **Signing & Capabilities** → your team →
+run on a simulator, or on a device after trusting the developer certificate.
+First launch on a physical device needs a free Apple ID; the App Store needs a
+paid account.
+
+### Why storage changed
+
+`src/lib/storage.ts` now uses **@capacitor/preferences** when running natively,
+which maps to `UserDefaults`. This is not a detail: WKWebView's `localStorage`
+can be **evicted by iOS** when the device is low on space, and for a pregnancy
+record that means silently losing a scan report. The browser path still uses
+`localStorage`, and the API is unchanged, so nothing above it had to move.
+
+Note that the installed web app and the native app do **not** share storage —
+they are different containers. Moving between them means exporting and
+re-importing, which is what `storage.all()` exists for.
+
+### App Store, if it ever comes to that
+
+- Apple Developer Program: 99 USD/year.
+- A privacy policy is mandatory. This app's honest one is short: *no account, no
+  server, no analytics, everything stays on the device* — which is also its
+  strongest selling point in review.
+- Health-adjacent apps attract scrutiny. The app already refuses to diagnose,
+  prescribe or guess the baby's sex (PCPCNT/PCPNDT), and those refusals should be
+  stated in the review notes rather than discovered by a reviewer.
